@@ -16,16 +16,16 @@ public class pruebasPersistencia {
         PacienteDAO pacienteDAO = new PacienteDAO(conexion);
 
         // Crear usuarios de prueba
-        Usuario usuario1 = new Usuario("098", "password123", "Paciente");
-        Usuario usuario2 = new Usuario("890", "password456", "Paciente");
+        Usuario usuario1 = new Usuario("1333", "password123", "Paciente");
+        Usuario usuario2 = new Usuario("1666", "password456", "Paciente");
 
         // Crear direcciones de prueba
         Direccion direccion1 = new Direccion("Calle 1", 123, "Colonia Centro");
         Direccion direccion2 = new Direccion("Avenida Principal", 456, "Colonia Norte");
 
         // Crear pacientes de prueba
-        Paciente paciente1 = new Paciente("Juan", "Pérez", "López", "12345@gmail.com", "54101", direccion1, usuario1);
-        Paciente paciente2 = new Paciente("Ana", "Gómez", "Martínez", "54321@mail.com", "10154", direccion2, usuario2);
+        Paciente paciente1 = new Paciente("pepe", "Pérez", "López", "asd@gmail.com", "12354", direccion1, usuario1);
+        Paciente paciente2 = new Paciente("asdaksnd", "Gómez", "Martínez", "aAAAAA@mail.com", "9876", direccion2, usuario2);
 
         try {
             // Registrar los pacientes en la base de datos
