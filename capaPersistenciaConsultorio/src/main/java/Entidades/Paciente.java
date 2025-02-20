@@ -15,12 +15,15 @@ public class Paciente {
     private String correoElectronico;
     private String telefono;
     private Direccion direccion;
+    private Usuario usuario;
 
     public Paciente() {
         
     }
 
-    public Paciente(String nombres, String apellidoPaterno, String apellidoMaterno, String correoElectronico, String telefono, Direccion direccion) {
+    public Paciente(String nombres, String apellidoPaterno, String apellidoMaterno, String correoElectronico, String telefono, Direccion direccion, Usuario usuario) {
+        this.usuario = usuario;
+        this.id_paciente = (usuario != null) ? usuario.getId_usuario() : -1;
         this.nombres = nombres;
         this.apellidoPaterno = apellidoPaterno;
         this.apellidoMaterno = apellidoMaterno;
@@ -29,7 +32,7 @@ public class Paciente {
         this.direccion = direccion;
     }
 
-    public Paciente(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, String correoElectronico, String telefono, Direccion direccion) {
+    public Paciente(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, String correoElectronico, String telefono, Direccion direccion, Usuario usuario) {
         this.id_paciente = id_paciente;
         this.nombres = nombres;
         this.apellidoPaterno = apellidoPaterno;
@@ -37,6 +40,7 @@ public class Paciente {
         this.correoElectronico = correoElectronico;
         this.telefono = telefono;
         this.direccion = direccion;
+        this.usuario = usuario;
     }
 
     public int getId_paciente() {
@@ -45,6 +49,17 @@ public class Paciente {
 
     public void setId_paciente(int id_paciente) {
         this.id_paciente = id_paciente;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+        if (usuario != null) {
+            this.id_paciente = usuario.getId_usuario();
+        }
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
     }
 
     public String getNombres() {
@@ -97,7 +112,6 @@ public class Paciente {
 
     @Override
     public String toString() {
-        return "Paciente{" + "id_paciente=" + id_paciente + ", nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + ", direccion=" + direccion + '}';
+        return "Paciente{" + "id_paciente=" + id_paciente + ", nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + ", direccion=" + direccion + ", usuario=" + usuario + '}';
     }
-    
 }
