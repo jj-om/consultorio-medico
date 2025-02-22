@@ -64,3 +64,36 @@ BEGIN
 END &&
 
 DELIMITER ;
+-- Procedimiento almacenado para agendar una cita
+DELIMITER //
+CREATE PROCEDURE AgendarCita(
+    IN paciente_id INT,
+    IN medico_id INT,
+    IN fecha_hora DATETIME
+)
+BEGIN
+	-- DECLARAMOS VARIABLES DONDE METEREMOS LOS VALORES
+    DECLARE contar_citas INT;
+    DECLARE horario_valido INT;
+    -- HACEMOS LA CONSULTA Y GUARDAMOS EL RESULTADO EN CONTAR CITAS PARA DESPUES VALIDARLO
+    SELECT COUNT(*) INTO contar_citas FROM Citas 
+    WHERE paciente_id = paciente_id AND medico_id = medico_id AND DATE(fecha_hora) = DATE(fecha_hora);
+    
+    -- VALIDAMOS QUE LA CITA NO SEA MAYOR A 0, EN CASO DE QUE LO SEA EL PACIENTE YA TENDRÁ UNA CITA CON EL MEDICO EN LA MISMA FECHA
+    IF contar_citas > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El paciente ya tiene una cita con este médico en la misma fecha';
+    END IF;
+    -- HACEMOS LA CONSULTA Y GUARDAMOS EL RESULTADO PARA VALIDARLO
+    SELECT COUNT(*) INTO horario_valido FROM Horarios WHERE medico_id = medico_id 
+    AND fecha_hora BETWEEN hora_inicio AND hora_fin;
+    
+    -- VALIDAMOS QUE EL HORARIO DEL MEDICO ESTE DISPONIBLE
+    IF horario_valido = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El médico no está disponible en este horario';
+    END IF;
+    -- EN CASO DE QUE TODO ESTE CORRECTO, SE REGISTRARA LA CITA.
+    
+    INSERT INTO Citas (paciente_id, medico_id, fecha_hora, estado) VALUES (paciente_id, medico_id, fecha_hora, 'Agendada');
+    INSERT INTO AuditoriaCitas (idCita, accion, usuario) VALUES (LAST_INSERT_ID(), 'Cita Agendada', paciente_id);
+END //
+DELIMITER ;
