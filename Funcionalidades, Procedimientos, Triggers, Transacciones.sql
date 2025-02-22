@@ -13,6 +13,64 @@ END &&
 
 DELIMITER ;
 
+-- TRIGGER PARA LA AUDITORIA AL REGISTRAR UNA CITA
+DELIMITER &&
+
+CREATE TRIGGER aud_registrar_cita
+AFTER INSERT ON Citas
+FOR EACH ROW
+BEGIN
+    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+    VALUES ('registracita', NEW.id_paciente, NEW.id_cita);
+END &&
+
+DELIMITER ;
+
+
+-- TRIGGER PARA LA AUDITORIA AL CANCELAR UNA CITA
+DELIMITER &&
+
+CREATE TRIGGER aud_cancelar_cita
+AFTER UPDATE ON Citas
+FOR EACH ROW
+BEGIN
+    IF OLD.estado != 'cancelada' AND NEW.estado = 'cancelada' THEN
+        INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+        VALUES ('cancelacita', NEW.id_paciente, NEW.id_cita);
+    END IF;
+END &&
+
+DELIMITER ;
+
+-- TRIGGER PARA AUDITORIA AL INICIAR UNA CITA
+DELIMITER &&
+
+CREATE TRIGGER aud_iniciar_cita
+AFTER UPDATE ON Citas
+FOR EACH ROW
+BEGIN
+    IF OLD.estado != 'atendida' AND NEW.estado = 'atendida' THEN
+        INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+        VALUES ('iniciacita', NEW.id_paciente, NEW.id_cita);
+    END IF;
+END &&
+
+DELIMITER ;
+
+-- TRIGGER PARA AUDITORIA AL TERMINAR UNA CITA
+DELIMITER &&
+
+CREATE TRIGGER aud_terminar_cita
+AFTER INSERT ON Consultas
+FOR EACH ROW
+BEGIN
+    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+    VALUES ('terminacita', (SELECT id_paciente FROM Citas WHERE id_cita = NEW.id_cita), NEW.id_cita);
+END &&
+
+DELIMITER ;
+
+
 -- PROCEDIMIENTO ALMACENADO PARA REGISTRAR A UN PACIENTE
 DELIMITER &&
 CREATE PROCEDURE registrarPaciente(
@@ -64,36 +122,93 @@ BEGIN
 END &&
 
 DELIMITER ;
--- Procedimiento almacenado para agendar una cita
+
+-- PROCEDIMIENTO PARA REGISTRAR UN MEDICO -- USO DE NOSOTROS, NO ES PARA EL PROGRAMA
+DELIMITER ##
+
+CREATE PROCEDURE registrarMedico(
+	-- SELECCIONA LOS ATRIBUTOS
+	IN medico_cedulaProfesional VARCHAR(50),
+	IN medico_nombres VARCHAR(40),
+    IN medico_apellidoPaterno VARCHAR(20),
+    IN medico_apellidoMaterno VARCHAR(20),
+    IN medico_usuario VARCHAR(40),
+    IN medico_contraseña VARCHAR(40),
+    IN medico_especialidad VARCHAR(50),
+    IN medico_estado ENUM('Activo', 'Inactivo'),
+    IN medico_horario INT
+) 
+BEGIN
+
+	-- DECLARAMOS LAS VARIABLES DE VERIFICACION
+	DECLARE verificar_cedula INT;
+    DECLARE ultimo_usuario INT;
+    -- AUNQUE SEA UNIQUE REVISAMOS QUE NO EXISTA LA CEDULA PROFESIONAL
+    SELECT COUNT(*) INTO verificar_cedula
+    FROM Medicos
+    WHERE cedulaProfesional = medico_cedulaProfesional;
+    -- VERIFICAMOS LA CONSULTA
+    IF verificar_cedula = 0 THEN
+		-- REGISTRAMOS AL MEDICO EN LA TABLA USUARIOS
+        INSERT INTO Usuarios (usuario, contraseña, tipo)
+        VALUES (medico_usuario, medico_contraseña, 'Medico');
+        SET ultimo_usuario = LAST_INSERT_ID();
+        
+        -- INSERTAMOS AHORA SI AL MEDICO
+		INSERT INTO medicos(id_medico, cedulaProfesional, nombres, apellidoPaterno, apellidoMaterno, especialidad, estado)
+        VALUES (ultimo_usuario, medico_cedulaProfesional, medico_nombres, medico_apellidoPaterno, medico_apellidoMaterno, medico_especialidad, medico_estado);
+        -- INSERTAMOS EL HORARIO DEL MEDICO
+        INSERT INTO horarios_medicos(id_medico, id_horario)
+        VALUES (ultimo_usuario, medico_horario);
+	ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La Cedula Profesional ya está registrada.';
+    END IF ;
+END ##
+
+DELIMITER ;
+
+-- PROCEDIMIENTO PARA AGENTAR UNA CITA
 DELIMITER //
-CREATE PROCEDURE AgendarCita(
+
+CREATE PROCEDURE agendarCita(
     IN paciente_id INT,
     IN medico_id INT,
-    IN fecha_hora DATETIME
+    IN fecha_hora DATETIME 
 )
 BEGIN
-	-- DECLARAMOS VARIABLES DONDE METEREMOS LOS VALORES
+    -- Declaración de variables
     DECLARE contar_citas INT;
     DECLARE horario_valido INT;
-    -- HACEMOS LA CONSULTA Y GUARDAMOS EL RESULTADO EN CONTAR CITAS PARA DESPUES VALIDARLO
-    SELECT COUNT(*) INTO contar_citas FROM Citas 
-    WHERE paciente_id = paciente_id AND medico_id = medico_id AND DATE(fecha_hora) = DATE(fecha_hora);
-    
-    -- VALIDAMOS QUE LA CITA NO SEA MAYOR A 0, EN CASO DE QUE LO SEA EL PACIENTE YA TENDRÁ UNA CITA CON EL MEDICO EN LA MISMA FECHA
+
+    -- Validar si el paciente ya tiene una cita con el mismo médico en la misma fecha
+    SELECT COUNT(*) INTO contar_citas 
+    FROM Citas 
+    WHERE id_paciente = paciente_id 
+      AND id_medico = medico_id 
+      AND DATE(fechaHoraCita) = DATE(fecha_hora);
+
     IF contar_citas > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El paciente ya tiene una cita con este médico en la misma fecha';
     END IF;
-    -- HACEMOS LA CONSULTA Y GUARDAMOS EL RESULTADO PARA VALIDARLO
-    SELECT COUNT(*) INTO horario_valido FROM Horarios WHERE medico_id = medico_id 
-    AND fecha_hora BETWEEN hora_inicio AND hora_fin;
-    
-    -- VALIDAMOS QUE EL HORARIO DEL MEDICO ESTE DISPONIBLE
+
+    -- Validar si el médico está disponible en el horario solicitado
+    SELECT COUNT(*) INTO horario_valido 
+    FROM horarios_medicos AS HM
+    INNER JOIN horarios AS H ON HM.id_horario = H.id_horario 
+    WHERE HM.id_medico = medico_id
+      AND TIME(fecha_hora) BETWEEN H.horaInicio AND H.horaFinal;
+
     IF horario_valido = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El médico no está disponible en este horario';
     END IF;
-    -- EN CASO DE QUE TODO ESTE CORRECTO, SE REGISTRARA LA CITA.
-    
-    INSERT INTO Citas (paciente_id, medico_id, fecha_hora, estado) VALUES (paciente_id, medico_id, fecha_hora, 'Agendada');
-    INSERT INTO AuditoriaCitas (idCita, accion, usuario) VALUES (LAST_INSERT_ID(), 'Cita Agendada', paciente_id);
+
+    -- Insertar la cita si todas las validaciones se cumplen
+    INSERT INTO Citas (id_paciente, id_medico, fechaHoraCita, estado) 
+    VALUES (paciente_id, medico_id, fecha_hora, 'agendada');
+
+    -- Llamar al procedimiento de auditoría con el ID de la cita recién insertada
+    SELECT aud_registrar_cita(LAST_INSERT_ID());
+
 END //
+
 DELIMITER ;
