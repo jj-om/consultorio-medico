@@ -125,7 +125,7 @@ public class PacienteDAO implements IPacienteDAO {
         throw new PersistenciaException("Error al agendar la cita: " + ex.getMessage(), ex);
     }
 }
-     //CANCELAR CITA   
+     //METODO PARA CANCELAR LA CITA
         
     public void cancelarCita(int idCita, int idPaciente) throws PersistenciaException {
         //LLAMAMOS AL PROCEDIMIENTO ALMACENADO PARA CANCELAR CITA
@@ -144,6 +144,7 @@ public class PacienteDAO implements IPacienteDAO {
         throw new PersistenciaException("Error al cancelar la cita: " + ex.getMessage(), ex);
     }
 }
+    //METODO PARA GENERAR CITA DE EMERGENCIA
  public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
     String sentenciaSQL = "CALL GenerarCitaEmergencia(?, ?)";  //Llamada al procedimiento almacenado
     int folio = -1;  // Para almacenar el folio generado
@@ -163,6 +164,41 @@ public class PacienteDAO implements IPacienteDAO {
     }
     return folio;
 }
-   
+    // METODO PARA ACTUALIZAR LOS DATOS DEL CLIENTE
+   public void actualizarDatosPaciente(Paciente paciente) throws PersistenciaException {
+    String sentenciaSQL = "CALL ActualizarDatosPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    try (Connection con = conexion.crearConexion();
+         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
+
+        System.out.println("Enviando datos a ActualizarDatosPaciente:");
+        System.out.println("   - ID Paciente: " + paciente.getId_paciente());
+        System.out.println("   - Nombre: " + paciente.getNombres());
+        System.out.println("   - Apellido Paterno: " + paciente.getApellidoPaterno());
+        System.out.println("   - Apellido Materno: " + paciente.getApellidoMaterno());
+        System.out.println("   - Correo: " + paciente.getCorreoElectronico());
+        System.out.println("   - Teléfono: " + paciente.getTelefono());
+        System.out.println("   - Dirección: " + paciente.getDireccion().getCalle() + 
+                           ", " + paciente.getDireccion().getNumero() + 
+                           ", " + paciente.getDireccion().getColonia());
+
+        cs.setInt(1, paciente.getId_paciente());
+        cs.setString(2, paciente.getNombres());
+        cs.setString(3, paciente.getApellidoPaterno());
+        cs.setString(4, paciente.getApellidoMaterno());
+        cs.setString(5, paciente.getCorreoElectronico());
+        cs.setString(6, paciente.getTelefono());
+        cs.setString(7, paciente.getDireccion().getCalle());
+        cs.setInt(8, paciente.getDireccion().getNumero());
+        cs.setString(9, paciente.getDireccion().getColonia());
+
+        cs.executeUpdate();
+        System.out.println("Datos del paciente actualizados correctamente.");
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al actualizar datos del paciente: " + ex.getMessage(), ex);
+    }
+}
+
         
 }

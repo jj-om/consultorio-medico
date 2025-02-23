@@ -20,12 +20,12 @@ public class pruebasPersistencia {
     public static void main(String[] args) {
         IConexionBD conexion = new ConexionBD();
         PacienteDAO pacienteDAO = new PacienteDAO(conexion);
-
+        
+       
         int idPaciente = 1;
         int idMedico = 1;
         int idCita = 5;
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0); // ?
-
         try {
             // Intentar agendar la cita usando el procedimiento almacenado
             CitaDAO nuevaCita = new CitaDAO(idPaciente, idMedico, fechaHora, "Agendada");
@@ -73,7 +73,7 @@ public class pruebasPersistencia {
         } catch (PersistenciaException e) {
             System.out.println("Error al cancelar la cita: " + e.getMessage());
         }
-    }*/
+    }
     try {
             int folio = pacienteDAO.generarCitaEmergencia(idPaciente);
             System.out.println("Cita de emergencia registrada con folio: " + folio);
@@ -81,7 +81,8 @@ public class pruebasPersistencia {
         } catch (PersistenciaException e) {
             System.out.println("Error al generar la cita de emergencia: " + e.getMessage());
         }
-    }   
+    }   */
+    }
     }
     
 
