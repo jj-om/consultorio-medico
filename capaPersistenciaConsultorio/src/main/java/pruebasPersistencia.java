@@ -5,6 +5,7 @@ import DAO.PacienteDAO;
 import Exception.PersistenciaException;
 import java.time.LocalDateTime;
 import DAO.CitaDAO;
+import DAO.MedicoDAO;
 import DAO.PacienteDAO;
 import DAO.UsuarioDAO;
 import Entidades.Direccion;
@@ -25,9 +26,14 @@ public class pruebasPersistencia {
         PacienteDAO pacienteDAO = new PacienteDAO(conexion);
         Scanner scanner = new Scanner (System.in);
         UsuarioDAO usuarioDAO = new UsuarioDAO(conexion);
-
+        MedicoDAO medicoDAO = new MedicoDAO(conexion);
+        System.out.print("ID del Médico: ");
+        int idMedico = scanner.nextInt();
+        scanner.nextLine();
+        System.out.print("Fecha (YYYY-MM-DD): ");
+        String fechaStr = scanner.nextLine();
+        Date fecha = Date.valueOf(fechaStr);    
         int idPaciente = 1;
-        int idMedico = 1;
         int idCita = 5;
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0); // ?
         String especialidad = "Cardiología"; 
@@ -37,8 +43,21 @@ public class pruebasPersistencia {
         String usuario = scanner.nextLine();
         System.out.print("Contraseña: ");
         String contraseña = scanner.nextLine();
+         try {
+            List<String> agenda = medicoDAO.consultarAgenda(idMedico, fecha);
 
-        try {
+            if (agenda.isEmpty()) {
+                System.out.println(" No hay citas programadas para esta fecha.");
+            } else {
+                System.out.println("Agenda de citas:");
+                agenda.forEach(System.out::println);
+            }
+
+        } catch (PersistenciaException e) {
+            System.out.println("Error al consultar la agenda: " + e.getMessage());
+        }
+    }
+      /*  try {
             String tipoUsuario = usuarioDAO.validarCredenciales(usuario, contraseña);
 
             if ("Paciente".equals(tipoUsuario)) {
@@ -76,7 +95,7 @@ public class pruebasPersistencia {
         }
         // Crear conexión a la base de datos
         // Crear usuarios de prueba
-       /* Usuario usuario1 = new Usuario("1333", "password123", "Paciente");
+        Usuario usuario1 = new Usuario("1333", "password123", "Paciente");
       
         Usuario usuario2 = new Usuario("1666", "password456", "Paciente");
 
@@ -121,7 +140,7 @@ public class pruebasPersistencia {
         }
     }   */
     }
-    }
+    
     
 
 
