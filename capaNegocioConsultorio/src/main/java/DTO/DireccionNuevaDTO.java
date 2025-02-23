@@ -5,12 +5,9 @@
 package DTO;
 
 /**
- * @author Ehtan Valdez 
+ *
  * @author Daniel Buelna
- * @author Manuel Guerrero
- * @author Jesus Osuna
  */
-
 public class DireccionNuevaDTO {
     
     private String calle;

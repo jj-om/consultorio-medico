@@ -1,8 +1,7 @@
 package DTO;
 
 /**
- * @author Ethan Valdez
- * @author Daniel Buelna
+ * @author Carmen Beltran
  * @author Manuel Guerrero
  * @author Jesus Osuna
  */
