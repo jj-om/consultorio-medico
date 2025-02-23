@@ -256,3 +256,56 @@ BEGIN
 END //
 DELIMITER ;
 
+DELIMITER //
+
+-- PROCEDIMIENTO ALMACENADO PARA GENERAR UNA CITA DE EMERGENCIA
+DELIMITER //
+
+CREATE PROCEDURE GenerarCitaEmergencia(
+	-- valores de retorno
+   IN paciente_id INT,
+    OUT folio INT  
+)
+BEGIN
+	-- variables
+    DECLARE medico_disponible INT;
+    DECLARE nuevo_id_cita INT;
+
+    -- Buscar el primer médico activo con disponibilidad
+    SELECT id_medico INTO medico_disponible
+    FROM Medicos 
+    WHERE estado = 'Activo' 
+    ORDER BY RAND() LIMIT 1;
+
+    -- Si no hay médicos disponibles, lanzar un error
+    IF medico_disponible IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No hay médicos disponibles en este momento';
+    END IF;
+
+    -- Generar un folio aleatorio de 8 dígitos
+    SET folio = FLOOR(RAND() * 100000000);
+
+    -- Insertar la cita de emergencia en la tabla Citas
+    INSERT INTO Citas (fechaHoraCita, estado, id_paciente, id_medico)
+    VALUES (NOW(), 'no atendida', paciente_id, medico_disponible);  
+
+    -- Obtener el ID de la cita generada
+    SET nuevo_id_cita = LAST_INSERT_ID();
+
+    -- Insertar en la tabla Citas_Emergencias
+    INSERT INTO Citas_Emergencias (id_citaEmergencia, folio)
+    VALUES (nuevo_id_cita, folio);
+
+    -- Registrar la operación en la auditoría
+    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita) 
+    VALUES ('Cita de emergencia generada', paciente_id, nuevo_id_cita);
+END //
+DELIMITER ;
+
+
+
+
+
+
+
