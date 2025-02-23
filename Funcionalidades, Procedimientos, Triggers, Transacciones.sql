@@ -303,6 +303,68 @@ BEGIN
 END //
 DELIMITER ;
 
+DELIMITER //
+-- PRODECIMIENTO ALMACENADO PARA ACTUALIZAR DATOS DEL PACIENTE
+DELIMITER //
+
+CREATE PROCEDURE ActualizarDatosPaciente(
+    IN paciente_id INT,
+    IN nuevo_nombre VARCHAR(40),
+    IN nuevo_apellidoPaterno VARCHAR(20),
+    IN nuevo_apellidoMaterno VARCHAR(20),
+    IN nuevo_correoElectronico VARCHAR(70),
+    IN nuevo_telefono VARCHAR(15),
+    IN nueva_calle VARCHAR(40),
+    IN nuevo_numero INT,
+    IN nueva_colonia VARCHAR(40)
+)
+BEGIN
+    DECLARE citas_activas INT;
+    DECLARE direccion_actual INT;
+
+    -- Iniciar la transacción
+    START TRANSACTION;
+
+    -- Verificar si el paciente tiene citas activas
+    SELECT COUNT(*) INTO citas_activas
+    FROM Citas 
+    WHERE id_paciente = paciente_id 
+      AND estado IN ('atendida', 'no atendida', 'no asistio paciente');
+
+    -- Si tiene citas activas, deshacer la transacción y lanzar error
+    IF citas_activas > 0 THEN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'No se pueden actualizar los datos porque el paciente tiene citas activas.';
+    END IF;
+
+    -- Obtener la dirección actual del paciente
+    SELECT id_direccion INTO direccion_actual
+    FROM Pacientes 
+    WHERE id_paciente = paciente_id;
+
+    -- Actualizar la dirección del paciente
+    UPDATE Direcciones
+    SET calle = nueva_calle, numero = nuevo_numero, colonia = nueva_colonia
+    WHERE id_direccion = direccion_actual;
+
+    -- Actualizar los datos del paciente
+    UPDATE Pacientes
+    SET nombres = nuevo_nombre, apellidoPaterno = nuevo_apellidoPaterno, 
+        apellidoMaterno = nuevo_apellidoMaterno, correoElectronico = nuevo_correoElectronico, 
+        telefono = nuevo_telefono
+    WHERE id_paciente = paciente_id;
+
+    -- Registrar en auditoría
+    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita) 
+    VALUES ('Datos de paciente actualizados', paciente_id, NULL);
+
+    -- Confirmar la transacción
+    COMMIT;
+END //
+DELIMITER ;
+
+
 
 
 
