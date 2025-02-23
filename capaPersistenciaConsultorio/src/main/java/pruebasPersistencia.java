@@ -61,7 +61,7 @@ public class pruebasPersistencia {
         } catch (PersistenciaException e) {
             System.err.println("Error en la persistencia: " + e.getMessage());
         }
-    }*/
+    }
        
        //INTENTAMOS CANCELAR UNA CITA CON ESTE BLOQUE DE TRY
                try {
@@ -73,7 +73,16 @@ public class pruebasPersistencia {
         } catch (PersistenciaException e) {
             System.out.println("Error al cancelar la cita: " + e.getMessage());
         }
+    }*/
+    try {
+            int folio = pacienteDAO.generarCitaEmergencia(idPaciente);
+            System.out.println("Cita de emergencia registrada con folio: " + folio);
+
+        } catch (PersistenciaException e) {
+            System.out.println("Error al generar la cita de emergencia: " + e.getMessage());
+        }
+    }   
     }
     
-}
+
 

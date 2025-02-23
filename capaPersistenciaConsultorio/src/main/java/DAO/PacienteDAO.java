@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.logging.Level;
@@ -143,6 +144,25 @@ public class PacienteDAO implements IPacienteDAO {
         throw new PersistenciaException("Error al cancelar la cita: " + ex.getMessage(), ex);
     }
 }
-    
+ public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
+    String sentenciaSQL = "CALL GenerarCitaEmergencia(?, ?)";  //Llamada al procedimiento almacenado
+    int folio = -1;  // Para almacenar el folio generado
+
+    try (Connection con = conexion.crearConexion();
+         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
+        cs.setInt(1, idPaciente);  
+        cs.registerOutParameter(2, Types.INTEGER);  
+        cs.executeUpdate();
+
+        // Obtener el folio generado
+        folio = cs.getInt(2);
+        System.out.println("Cita de emergencia generada con folio: " + folio);
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al generar cita de emergencia: " + ex.getMessage(), ex);
+    }
+    return folio;
+}
+   
         
 }
