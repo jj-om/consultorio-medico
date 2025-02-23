@@ -10,6 +10,7 @@ import Entidades.Direccion;
 import Entidades.Paciente;
 import Entidades.Usuario;
 import Exception.PersistenciaException;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +27,21 @@ public class pruebasPersistencia {
         int idMedico = 1;
         int idCita = 5;
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0); // ?
+        String especialidad = "Cardiología"; 
+       Date fechaInicio = Date.valueOf("2025-01-01"); 
+       Date fechaFin = Date.valueOf("2025-12-31");
+
+        try {
+            List<String> historial = pacienteDAO.consultarHistorialConsultas(idPaciente, especialidad, fechaInicio, fechaFin);
+            if (historial.isEmpty()) {
+                System.out.println("No se encontraron consultas médicas en el historial.");
+            } else {
+                System.out.println("Historial de Consultas Médicas:");
+                historial.forEach(System.out::println);
+            }
+        } catch (PersistenciaException e) {
+            System.out.println("Error al consultar historial de consultas: " + e.getMessage());
+        }
         try {
             // Intentar agendar la cita usando el procedimiento almacenado
             CitaDAO nuevaCita = new CitaDAO(idPaciente, idMedico, fechaHora, "Agendada");

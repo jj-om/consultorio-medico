@@ -15,6 +15,9 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -198,7 +201,65 @@ public class PacienteDAO implements IPacienteDAO {
     } catch (SQLException ex) {
         throw new PersistenciaException("Error al actualizar datos del paciente: " + ex.getMessage(), ex);
     }
-}
+   }
+       public List<String> consultarHistorialConsultas(int idPaciente, String especialidad, Date fechaInicio, Date fechaFin) throws PersistenciaException {
+        List<String> historial = new ArrayList<>();
+        StringBuilder sentenciaSQL = new StringBuilder(
+            "SELECT c.fechaHoraConsulta, c.motivo, c.diagnostico, c.tratamiento, m.especialidad " +
+            "FROM Consultas c " +
+            "JOIN Citas ci ON c.id_cita = ci.id_cita " +
+            "JOIN Medicos m ON ci.id_medico = m.id_medico " +
+            "WHERE ci.id_paciente = ? " +  
+            "AND c.fechaHoraConsulta BETWEEN ? AND ?"
+        );
 
-        
+        if (especialidad != null && !especialidad.isEmpty()) {
+            sentenciaSQL.append(" AND m.especialidad = ?");
+        }
+
+        sentenciaSQL.append(" ORDER BY c.fechaHoraConsulta DESC");
+
+        try (Connection con = conexion.crearConexion();
+             PreparedStatement stmt = con.prepareStatement(sentenciaSQL.toString())) {
+
+            stmt.setInt(1, idPaciente);
+            stmt.setDate(2, (java.sql.Date) fechaInicio);
+            stmt.setDate(3, (java.sql.Date) fechaFin);
+
+            if (especialidad != null && !especialidad.isEmpty()) {
+                stmt.setString(4, especialidad);
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                historial.add("Fecha: " + rs.getTimestamp("fechaHoraConsulta") +
+                              "Especialidad: " + rs.getString("especialidad") +
+                              "Motivo: " + rs.getString("motivo") +
+                              "Diagnóstico: " + rs.getString("diagnostico") +
+                              "Tratamiento: " + rs.getString("tratamiento"));
+            }
+
+        } catch (SQLException ex) {
+            throw new PersistenciaException("Error al consultar historial de consultas: " + ex.getMessage(), ex);
+        }
+
+        return historial;
+    }
 }
+   
+   
+   
+
+
+
+    
+    
+    
+   
+
+
+
+
+
+
+
