@@ -1,9 +1,12 @@
 package DTO;
 
 /**
- *
+ * @author Ethan Valdez
  * @author Daniel Buelna
+ * @authoR Manuel Guerrero
+ * @author Jesus Osuna
  */
+
 public class UsuarioNuevoDTO {
     
     private String usuario;
