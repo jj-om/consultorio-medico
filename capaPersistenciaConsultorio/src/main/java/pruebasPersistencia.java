@@ -6,6 +6,7 @@ import Exception.PersistenciaException;
 import java.time.LocalDateTime;
 import DAO.CitaDAO;
 import DAO.PacienteDAO;
+import DAO.UsuarioDAO;
 import Entidades.Direccion;
 import Entidades.Paciente;
 import Entidades.Usuario;
@@ -13,6 +14,7 @@ import Exception.PersistenciaException;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * @author Jesús Osuna 240549
@@ -21,8 +23,9 @@ public class pruebasPersistencia {
     public static void main(String[] args) {
         IConexionBD conexion = new ConexionBD();
         PacienteDAO pacienteDAO = new PacienteDAO(conexion);
-        
-       
+        Scanner scanner = new Scanner (System.in);
+        UsuarioDAO usuarioDAO = new UsuarioDAO(conexion);
+
         int idPaciente = 1;
         int idMedico = 1;
         int idCita = 5;
@@ -30,7 +33,26 @@ public class pruebasPersistencia {
         String especialidad = "Cardiología"; 
        Date fechaInicio = Date.valueOf("2025-01-01"); 
        Date fechaFin = Date.valueOf("2025-12-31");
+       System.out.print(" Usuario: ");
+        String usuario = scanner.nextLine();
+        System.out.print("Contraseña: ");
+        String contraseña = scanner.nextLine();
 
+        try {
+            String tipoUsuario = usuarioDAO.validarCredenciales(usuario, contraseña);
+
+            if ("Paciente".equals(tipoUsuario)) {
+                System.out.println("Bienvenido, paciente.");
+            } else if ("Medico".equals(tipoUsuario)) {
+                System.out.println("Bienvenido, médico.");
+            } else {
+                System.out.println("Tipo de usuario desconocido.");
+            }
+
+        } catch (PersistenciaException e) {
+            System.out.println(e.getMessage());
+        }
+    
         try {
             List<String> historial = pacienteDAO.consultarHistorialConsultas(idPaciente, especialidad, fechaInicio, fechaFin);
             if (historial.isEmpty()) {
