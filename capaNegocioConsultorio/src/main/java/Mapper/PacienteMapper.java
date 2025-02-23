@@ -28,4 +28,19 @@ public class PacienteMapper {
             usuario
         );
     }
+    
+    public Paciente toEntity(int idPaciente, PacienteNuevoDTO pacienteNuevo, Direccion direccion) {
+        if (pacienteNuevo == null || direccion == null) {
+            return null;
+        }
+        return new Paciente(
+            idPaciente,
+            pacienteNuevo.getNombres(),
+            pacienteNuevo.getApellidoPaterno(),
+            pacienteNuevo.getApellidoMaterno(),
+            pacienteNuevo.getCorreoElectronico(),
+            pacienteNuevo.getTelefono(),
+            direccion
+        );
+    }
 }

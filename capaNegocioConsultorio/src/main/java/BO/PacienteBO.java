@@ -41,17 +41,17 @@ public class PacienteBO {
     
     public boolean registrarPaciente(PacienteNuevoDTO pacienteNuevo, DireccionNuevaDTO direccionNueva, UsuarioNuevoDTO usuarioNuevo) throws NegocioException, NoSuchAlgorithmException {
         
-        // VALIDAR QUE EL DTO pacienteNuevo
+        // VALIDAR QUE EL DTO pacienteNuevo NO ESTE VACIO
         if (pacienteNuevo == null) {
             throw new NegocioException("El Paciente no puede ser nulo.");
         }
         
-        // VALIDAR QUE EL DTO direccionNueva
+        // VALIDAR QUE EL DTO direccionNueva NO ESTE VACIO
         if (direccionNueva == null) {
             throw new NegocioException("La Direccion no puede ser nulo.");
         }
         
-        // VALIDAR QUE EL DTO usuarioNuevo
+        // VALIDAR QUE EL DTO usuarioNuevo NO ESTE VACIO
         if (usuarioNuevo == null) {
             throw new NegocioException("El Usuario no puede ser nulo.");
         }
@@ -102,6 +102,51 @@ public class PacienteBO {
             
             // LANZAR UNA EXCEPCION DE negocio
             throw new NegocioException("Hubo un error al registrar al Paciente.", ex);
+        }
+    }
+    
+    public boolean actualizarActivista(int idPaciente, PacienteNuevoDTO pacienteNuevo, DireccionNuevaDTO direccionNueva) throws NegocioException {
+        // VALIDAR QUE EL DTO pacienteNuevo NO ESTE VACIO
+        if (pacienteNuevo == null) {
+            throw new NegocioException("El Paciente no puede ser nulo.");
+        }
+        
+        // VALIDAR QUE EL DTO direccionNueva NO ESTE VACIO
+        if (direccionNueva == null) {
+            throw new NegocioException("La Direccion no puede ser nulo.");
+        }
+        
+        // VERIFICAR QUE LOS CAMPOS REQUERIDOS NO ESTEN VACIOS
+        if (pacienteNuevo.getNombres().isEmpty() ||
+                pacienteNuevo.getApellidoPaterno().isEmpty() ||
+                pacienteNuevo.getCorreoElectronico().isEmpty() ||
+                direccionNueva.getCalle().isEmpty() ||
+                direccionNueva.getNumero() == -1 ||
+                direccionNueva.getColonia().isEmpty()
+                ) {
+            throw new NegocioException("Todos los campos son obligatorios.");
+        }
+        
+        // CONVERTIR EL DTO direccionNueva EN UNA ENTIDAD Direccion
+        Direccion direccion = DireccionMapper.toEntity(direccionNueva);
+        
+        // CONVERTIR EL DTO pacienteNuevo Y LAS ENTIDADES direccion Y usurio A UNA ENTIDAD Paciente
+        Paciente paciente = PacienteMapper.toEntity(idPaciente, pacienteNuevo, direccion);
+        
+        try {
+            // INTENTAR ACTUALIZAR A paciente EN LA BASE DE DATOS
+            boolean exito = pacienteDAO.actualizarDatosPaciente(paciente);
+            
+            // SI paciente FUE ACTUALIZADO REGRESA true
+            return exito;
+            
+        } catch (PersistenciaException ex) {
+            
+            // REGISTRAR EL ERROR EN LOS logs
+            logger.log(Level.SEVERE, "Error al actualizar al Paciente en la BD", ex);
+            
+            // LANZAR UNA EXCEPCION DE negocio
+            throw new NegocioException("Hubo un error al actualizar al Paciente.", ex);
         }
     }
     
