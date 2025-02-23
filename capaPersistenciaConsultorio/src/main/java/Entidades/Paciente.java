@@ -1,7 +1,8 @@
 package Entidades;
 
 /**
- * @author Carmen Beltran
+ * @author Ethan Valdez
+ * @author Daniel Buelna
  * @author Manuel Guerrero
  * @author Jesus Osuna
  */
@@ -31,7 +32,7 @@ public class Paciente {
         this.telefono = telefono;
         this.direccion = direccion;
     }
-
+    
     public Paciente(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, String correoElectronico, String telefono, Direccion direccion, Usuario usuario) {
         this.id_paciente = id_paciente;
         this.nombres = nombres;
@@ -41,6 +42,16 @@ public class Paciente {
         this.telefono = telefono;
         this.direccion = direccion;
         this.usuario = usuario;
+    }
+
+    public Paciente(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, String correoElectronico, String telefono, Direccion direccion) {
+        this.id_paciente = id_paciente;
+        this.nombres = nombres;
+        this.apellidoPaterno = apellidoPaterno;
+        this.apellidoMaterno = apellidoMaterno;
+        this.correoElectronico = correoElectronico;
+        this.telefono = telefono;
+        this.direccion = direccion;
     }
 
     public int getId_paciente() {
