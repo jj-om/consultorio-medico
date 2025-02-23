@@ -49,5 +49,53 @@ public class MedicoDAO {
 
         return agenda;
     }
+    public void iniciarConsulta(int idCita) throws PersistenciaException {
+    String sentenciaSQL = "UPDATE Citas SET estado = 'atendida' WHERE id_cita = ?";
+
+    try (Connection con = conexion.crearConexion();
+         PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+
+        stmt.setInt(1, idCita);
+        int filasAfectadas = stmt.executeUpdate();
+
+        if (filasAfectadas == 0) {
+            throw new PersistenciaException("No se pudo iniciar la consulta. Verifica el ID de la cita.");
+        }
+
+        System.out.println("La consulta ha sido iniciada.");
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al iniciar la consulta: " + ex.getMessage(), ex);
+    }
+}
+    public String verDetalleConsulta(int idCita) throws PersistenciaException {
+    String sentenciaSQL = "SELECT c.fechaHoraConsulta, c.motivo, c.diagnostico, c.tratamiento, p.nombres, p.apellidoPaterno, p.apellidoMaterno " +
+                          "FROM Consultas c " +
+                          "JOIN Citas ci ON c.id_cita = ci.id_cita " +
+                          "JOIN Pacientes p ON ci.id_paciente = p.id_paciente " +
+                          "WHERE c.id_cita = ?";
+
+    try (Connection con = conexion.crearConexion();
+         PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+
+        stmt.setInt(1, idCita);
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            return "Fecha: " + rs.getTimestamp("fechaHoraConsulta") +
+                   "\n Paciente: " + rs.getString("nombres") + " " + rs.getString("apellidoPaterno") + " " + rs.getString("apellidoMaterno") +
+                   "\n Motivo: " + rs.getString("motivo") +
+                   "\n Diagnóstico: " + rs.getString("diagnostico") +
+                   "\n Tratamiento: " + rs.getString("tratamiento");
+        } else {
+            return "No se encontró información para esta cita.";
+        }
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al obtener detalles de la consulta: " + ex.getMessage(), ex);
+    }
+}
+
+
 }
 
