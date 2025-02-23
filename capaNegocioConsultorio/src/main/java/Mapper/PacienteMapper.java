@@ -7,5 +7,5 @@ package Mapper;
  */
 
 public class PacienteMapper {
-    
+
 }
