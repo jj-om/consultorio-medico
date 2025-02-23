@@ -124,7 +124,4 @@ public class PacienteDAO implements IPacienteDAO {
         throw new PersistenciaException("Error al agendar la cita: " + ex.getMessage(), ex);
     }
 }
-
-
-
 }

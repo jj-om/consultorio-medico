@@ -16,13 +16,11 @@ public interface IPacienteDAO {
      * parámetro en la base de datos.
      */
     public Paciente registrarPaciente(Paciente paciente) throws PersistenciaException;
-    
+
     
     /**
      * Agendar una cita medica
      * 
      */
   
-    
-    
 }
