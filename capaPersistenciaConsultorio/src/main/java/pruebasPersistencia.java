@@ -23,6 +23,7 @@ public class pruebasPersistencia {
 
         int idPaciente = 1;
         int idMedico = 1;
+        int idCita = 5;
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0); // ?
 
         try {
@@ -61,6 +62,18 @@ public class pruebasPersistencia {
             System.err.println("Error en la persistencia: " + e.getMessage());
         }
     }*/
+       
+       //INTENTAMOS CANCELAR UNA CITA CON ESTE BLOQUE DE TRY
+               try {
+            pacienteDAO.cancelarCita(idCita, idPaciente);
+            System.out.println("La cita " + idCita + " ha sido cancelada correctamente.");
+
+            // Verificar en la base de datos (manual)
+
+        } catch (PersistenciaException e) {
+            System.out.println("Error al cancelar la cita: " + e.getMessage());
+        }
+    }
     
 }
-}
+

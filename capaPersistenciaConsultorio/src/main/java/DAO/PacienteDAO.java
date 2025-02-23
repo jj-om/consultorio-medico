@@ -108,20 +108,41 @@ public class PacienteDAO implements IPacienteDAO {
 
     // Insertar la cita en la base de datos 
         public void agendarCita(CitaDAO cita) throws PersistenciaException {
-    String sentenciaSQL = "CALL AgendarCita(?, ?, ?)"; // 
+    String sentenciaSQL = "CALL AgendarCita(?, ?, ?)"; //
 
     try (Connection con = conexion.crearConexion();
-         CallableStatement cs = con.prepareCall(sentenciaSQL)) { // 
+         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
 
-        cs.setInt(1, cita.getIdPaciente()); // paciente_id
-        cs.setInt(2, cita.getIdMedico());   // medico_id
+        cs.setInt(1, cita.getIdPaciente()); 
+        cs.setInt(2, cita.getIdMedico());   
         cs.setTimestamp(3, Timestamp.valueOf(cita.getFechaHora())); // fecha_hora (DATETIME en MySQL)
 
-        cs.executeUpdate(); //
+        cs.executeUpdate(); 
         System.out.println("Cita agendada con exito");
 
     } catch (SQLException ex) {
         throw new PersistenciaException("Error al agendar la cita: " + ex.getMessage(), ex);
     }
 }
+     //CANCELAR CITA   
+        
+    public void cancelarCita(int idCita, int idPaciente) throws PersistenciaException {
+        //LLAMAMOS AL PROCEDIMIENTO ALMACENADO PARA CANCELAR CITA
+        String sentenciaSQL = "CALL CancelarCita(?, ?)"; // 
+
+    try (Connection con = conexion.crearConexion();
+         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
+        System.out.println("   - Cita ID: " + idCita);
+        System.out.println("   - Paciente ID: " + idPaciente);
+        cs.setInt(1, idCita); 
+        cs.setInt(2, idPaciente);  
+        cs.executeUpdate();
+        System.out.println("Cita cancelada con éxito.");
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al cancelar la cita: " + ex.getMessage(), ex);
+    }
+}
+    
+        
 }
