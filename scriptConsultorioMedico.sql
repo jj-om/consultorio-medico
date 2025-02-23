@@ -56,6 +56,8 @@ CREATE TABLE Pacientes (
     nombres VARCHAR(40) NOT NULL,
     apellidoPaterno VARCHAR(20) NOT NULL,
     apellidoMaterno VARCHAR(20) NULL,
+    fechaNacimiento DATE NOT NULL,
+    edad INT NULL,
     correoElectronico VARCHAR(70) UNIQUE NOT NULL,
     telefono VARCHAR(15) UNIQUE NULL,
     id_direccion INT NOT NULL,
@@ -67,12 +69,11 @@ CREATE TABLE Pacientes (
 CREATE TABLE Citas (
     id_cita INT AUTO_INCREMENT PRIMARY KEY,
     fechaHoraCita DATE NOT NULL,
-    estado ENUM('atendida', 'cancelada', 'no atendida', 'no asistio paciente') NOT NULL,
+    estado ENUM('agendada', 'atendida', 'cancelada', 'no atendida', 'no asistio paciente') NOT NULL,
     id_paciente INT NOT NULL,
     id_medico INT NOT NULL,
     FOREIGN KEY (id_paciente) REFERENCES Pacientes(id_paciente),
 	FOREIGN KEY (id_medico) REFERENCES Medicos(id_medico)
-
 );
 
 -- CREAR TABLA CITAS_EMERGENCIAS

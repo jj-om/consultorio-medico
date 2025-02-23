@@ -1,9 +1,46 @@
 USE consultoriomedico;
 
--- TRIGGER PARA AUDITORIAS AL REGISTRAR UN PACIENTE
+-- TRIGGER PARA CALCULAR LA EDAD AL INSERTAR UN PACIENTE
+DELIMITER &&
+
+CREATE TRIGGER calcular_edad_insertar
+BEFORE INSERT ON Pacientes
+FOR EACH ROW
+BEGIN
+    SET NEW.edad = TIMESTAMPDIFF(YEAR, NEW.fechaNacimiento, CURDATE());
+END &&
+
+DELIMITER ;
+
+-- TRIGGER PARA ACTUALIZAR LA EDAD DEL PACIENTE AL ACTUALIZARLA
+DELIMITER &&
+
+CREATE TRIGGER calcular_edad_actualizar
+BEFORE UPDATE ON Pacientes
+FOR EACH ROW
+BEGIN
+    SET NEW.edad = TIMESTAMPDIFF(YEAR, NEW.fechaNacimiento, CURDATE());
+END &&
+
+DELIMITER ;
+
+-- TRIGGER PARA AUDITORIAS AL ACTUALIZAR UN PACIENTE
 DELIMITER &&
 
 CREATE TRIGGER aud_registro_paciente
+AFTER UPDATE ON Pacientes
+FOR EACH ROW
+BEGIN
+    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+    VALUES ('actualizardatospaciente', NEW.id_paciente, NULL);
+END &&
+
+DELIMITER ;
+
+-- TRIGGER PARA AUDITORIAS AL REGISTRAR UN PACIENTE
+DELIMITER &&
+
+CREATE TRIGGER aud_actualizar_paciente
 AFTER INSERT ON Pacientes
 FOR EACH ROW
 BEGIN
@@ -78,6 +115,7 @@ CREATE PROCEDURE registrarPaciente(
     IN paciente_nombres VARCHAR(40),
     IN paciente_apellidoPaterno VARCHAR(20),
     IN paciente_apellidoMaterno VARCHAR(20),
+    IN paciente_fechaNacimiento DATE,
     IN paciente_correoElectronico VARCHAR(70),
     IN paciente_usuario VARCHAR(40),
     IN paciente_contraseña VARCHAR(40),
@@ -113,8 +151,8 @@ BEGIN
         SET ultimo_usuario = LAST_INSERT_ID();
 
         -- INSERTAMOS AHORA SI AL CLIENTE
-        INSERT INTO Pacientes (id_paciente, nombres, apellidoPaterno, apellidoMaterno, correoElectronico, telefono, id_direccion)
-        VALUES (ultimo_usuario, paciente_nombres, paciente_apellidoPaterno, paciente_apellidoMaterno, paciente_correoElectronico, paciente_telefono, verificar_id_direccion);
+        INSERT INTO Pacientes (id_paciente, nombres, apellidoPaterno, apellidoMaterno, fechaNacimiento, correoElectronico, telefono, id_direccion)
+        VALUES (ultimo_usuario, paciente_nombres, paciente_apellidoPaterno, paciente_apellidoMaterno, paciente_fechaNacimiento, paciente_correoElectronico, paciente_telefono, verificar_id_direccion);
     
     ELSE
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El correo electrónico ya está registrado.';
@@ -124,7 +162,7 @@ END &&
 DELIMITER ;
 
 -- PROCEDIMIENTO PARA REGISTRAR UN MEDICO -- USO DE NOSOTROS, NO ES PARA EL PROGRAMA
-DELIMITER ##
+DELIMITER &&
 
 CREATE PROCEDURE registrarMedico(
 	-- SELECCIONA LOS ATRIBUTOS
@@ -163,22 +201,24 @@ BEGIN
 	ELSE
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La Cedula Profesional ya está registrada.';
     END IF ;
-END ##
+END &&
 
 DELIMITER ;
 
 -- PROCEDIMIENTO PARA AGENTAR UNA CITA
 DELIMITER //
-CREATE PROCEDURE AgendarCita(
+
+CREATE PROCEDURE agendarCita(
     IN paciente_id INT,
     IN medico_id INT,
-    IN fecha_hora DATETIME
+    IN fecha_hora DATETIME 
 )
 BEGIN
+    -- Declaración de variables
     DECLARE contar_citas INT;
     DECLARE horario_valido INT;
 
-    -- Verificar si el paciente ya tiene una cita con el mismo médico en la misma fecha
+    -- Validar si el paciente ya tiene una cita con el mismo médico en la misma fecha
     SELECT COUNT(*) INTO contar_citas 
     FROM Citas 
     WHERE id_paciente = paciente_id 
@@ -186,37 +226,33 @@ BEGIN
       AND DATE(fechaHoraCita) = DATE(fecha_hora);
 
     IF contar_citas > 0 THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'El paciente ya tiene una cita con este médico en la misma fecha';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El paciente ya tiene una cita con este médico en la misma fecha';
     END IF;
 
-    -- Verificar si el médico está disponible en ese horario
+    -- Validar si el médico está disponible en el horario solicitado
     SELECT COUNT(*) INTO horario_valido 
-    FROM Horarios_Medicos hm
-    JOIN Horarios h ON hm.id_horario = h.id_horario
-    WHERE hm.id_medico = medico_id 
-      AND TIME(fecha_hora) >= h.horaInicio 
-      AND TIME(fecha_hora) <= h.horaFinal
-      AND LOWER(h.diaSemana) = LOWER(DAYNAME(fecha_hora));
+    FROM horarios_medicos AS HM
+    INNER JOIN horarios AS H ON HM.id_horario = H.id_horario 
+    WHERE HM.id_medico = medico_id
+		AND TIME(fecha_hora) BETWEEN H.horaInicio AND H.horaFinal;
 
     IF horario_valido = 0 THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'El médico no está disponible en este horario';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El médico no está disponible en este horario';
     END IF;
 
-    -- Insertar la cita si todo está correcto
-    INSERT INTO Citas (fechaHoraCita, estado, id_paciente, id_medico) 
-    VALUES (fecha_hora, 'Agendada', paciente_id, medico_id);
+    -- Insertar la cita si todas las validaciones se cumplen
+    INSERT INTO Citas (id_paciente, id_medico, fechaHoraCita, estado) 
+    VALUES (paciente_id, medico_id, fecha_hora, 'agendada');
 
-    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita) 
-    VALUES ('Cita Agendada', paciente_id, LAST_INSERT_ID());
+
 END //
+
 DELIMITER ;
 
 -- PROCEDIMIENTO ALMACENADO PARA CANCELAR UNA CITA
 DELIMITER //
 
-CREATE PROCEDURE CancelarCita(
+CREATE PROCEDURE cancelarCita(
     IN cita_id INT,
     IN paciente_id INT
 )
@@ -250,124 +286,70 @@ BEGIN
     SET estado = 'cancelada' 
     WHERE id_cita = cita_id;
 
-    -- Registrar la cancelación en la auditoría
-    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita) 
-    VALUES ('Cita Cancelada', paciente_id, cita_id);
 END //
 DELIMITER ;
 
-DELIMITER //
-
--- PROCEDIMIENTO ALMACENADO PARA GENERAR UNA CITA DE EMERGENCIA
-DELIMITER //
-
-CREATE PROCEDURE GenerarCitaEmergencia(
-	-- valores de retorno
-   IN paciente_id INT,
-    OUT folio INT  
-)
-BEGIN
-	-- variables
-    DECLARE medico_disponible INT;
-    DECLARE nuevo_id_cita INT;
-
-    -- Buscar el primer médico activo con disponibilidad
-    SELECT id_medico INTO medico_disponible
-    FROM Medicos 
-    WHERE estado = 'Activo' 
-    ORDER BY RAND() LIMIT 1;
-
-    -- Si no hay médicos disponibles, lanzar un error
-    IF medico_disponible IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No hay médicos disponibles en este momento';
-    END IF;
-
-    -- Generar un folio aleatorio de 8 dígitos
-    SET folio = FLOOR(RAND() * 100000000);
-
-    -- Insertar la cita de emergencia en la tabla Citas
-    INSERT INTO Citas (fechaHoraCita, estado, id_paciente, id_medico)
-    VALUES (NOW(), 'no atendida', paciente_id, medico_disponible);  
-
-    -- Obtener el ID de la cita generada
-    SET nuevo_id_cita = LAST_INSERT_ID();
-
-    -- Insertar en la tabla Citas_Emergencias
-    INSERT INTO Citas_Emergencias (id_citaEmergencia, folio)
-    VALUES (nuevo_id_cita, folio);
-
-    -- Registrar la operación en la auditoría
-    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita) 
-    VALUES ('Cita de emergencia generada', paciente_id, nuevo_id_cita);
-END //
-DELIMITER ;
-
-DELIMITER //
 -- PRODECIMIENTO ALMACENADO PARA ACTUALIZAR DATOS DEL PACIENTE
 DELIMITER //
 
-CREATE PROCEDURE ActualizarDatosPaciente(
-    IN paciente_id INT,
-    IN nuevo_nombre VARCHAR(40),
+CREATE PROCEDURE actualizarDatosPaciente(
+	IN usuario_recuperado VARCHAR(40),
+    IN nuevo_nombres VARCHAR(40),
     IN nuevo_apellidoPaterno VARCHAR(20),
     IN nuevo_apellidoMaterno VARCHAR(20),
-    IN nuevo_correoElectronico VARCHAR(70),
+    IN nuevo_fechaNacimiento DATE,
     IN nuevo_telefono VARCHAR(15),
     IN nueva_calle VARCHAR(40),
     IN nuevo_numero INT,
     IN nueva_colonia VARCHAR(40)
 )
 BEGIN
+	DECLARE verificar_existePaciente INT;
     DECLARE citas_activas INT;
     DECLARE direccion_actual INT;
+    DECLARE paciente_id INT;
+    
+    SELECT id_paciente INTO paciente_id
+    FROM pacientes AS P
+    INNER JOIN usuarios AS U
+    WHERE U.usuario = usuario_recuperado;
+    
+    IF paciente_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se pueden actualizar los datos porque el paciente no existe.';
+    END IF;
 
     -- Iniciar la transacción
     START TRANSACTION;
-
     -- Verificar si el paciente tiene citas activas
     SELECT COUNT(*) INTO citas_activas
     FROM Citas 
     WHERE id_paciente = paciente_id 
-      AND estado IN ('atendida', 'no atendida', 'no asistio paciente');
+      AND estado IN ('agendada', 'atendida', 'no atendida', 'no asistio paciente');
 
     -- Si tiene citas activas, deshacer la transacción y lanzar error
     IF citas_activas > 0 THEN
         ROLLBACK;
-        SIGNAL SQLSTATE '45000' 
+        SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'No se pueden actualizar los datos porque el paciente tiene citas activas.';
     END IF;
-
+    
     -- Obtener la dirección actual del paciente
     SELECT id_direccion INTO direccion_actual
-    FROM Pacientes 
+    FROM Pacientes
     WHERE id_paciente = paciente_id;
-
     -- Actualizar la dirección del paciente
     UPDATE Direcciones
     SET calle = nueva_calle, numero = nuevo_numero, colonia = nueva_colonia
     WHERE id_direccion = direccion_actual;
-
     -- Actualizar los datos del paciente
     UPDATE Pacientes
-    SET nombres = nuevo_nombre, apellidoPaterno = nuevo_apellidoPaterno, 
-        apellidoMaterno = nuevo_apellidoMaterno, correoElectronico = nuevo_correoElectronico, 
-        telefono = nuevo_telefono
+    SET nombres = nuevo_nombres, apellidoPaterno = nuevo_apellidoPaterno, 
+        apellidoMaterno = nuevo_apellidoMaterno, fechaNacimiento = nuevo_fechanacimiento,
+		telefono = nuevo_telefono
     WHERE id_paciente = paciente_id;
-
-    -- Registrar en auditoría
-    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita) 
-    VALUES ('Datos de paciente actualizados', paciente_id, NULL);
-
     -- Confirmar la transacción
     COMMIT;
 END //
+
 DELIMITER ;
-
-
-
-
-
-
-
-
