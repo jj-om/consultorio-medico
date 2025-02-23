@@ -212,3 +212,47 @@ BEGIN
     VALUES ('Cita Agendada', paciente_id, LAST_INSERT_ID());
 END //
 DELIMITER ;
+
+-- PROCEDIMIENTO ALMACENADO PARA CANCELAR UNA CITA
+DELIMITER //
+
+CREATE PROCEDURE CancelarCita(
+    IN cita_id INT,
+    IN paciente_id INT
+)
+BEGIN
+    DECLARE cita_existente INT;
+    DECLARE estado_actual VARCHAR(20);
+
+    -- Verificar si la cita existe y pertenece al paciente
+    SELECT COUNT(*) INTO cita_existente 
+    FROM Citas 
+    WHERE id_cita = cita_id AND id_paciente = paciente_id;
+
+    IF cita_existente = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'La cita no existe o no pertenece a este paciente';
+    END IF;
+
+    -- Verificar el estado actual de la cita
+    SELECT estado INTO estado_actual 
+    FROM Citas 
+    WHERE id_cita = cita_id;
+
+    -- No permitir cancelar citas ya atendidas
+    IF estado_actual = 'atendida' THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'No se puede cancelar una cita ya atendida';
+    END IF;
+
+    -- Actualizar estado de la cita a 'cancelada'
+    UPDATE Citas 
+    SET estado = 'cancelada' 
+    WHERE id_cita = cita_id;
+
+    -- Registrar la cancelación en la auditoría
+    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita) 
+    VALUES ('Cita Cancelada', paciente_id, cita_id);
+END //
+DELIMITER ;
+
