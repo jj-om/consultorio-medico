@@ -69,6 +69,27 @@ public class CitaDAO {
         throw new PersistenciaException("Error al registrar diagnóstico y tratamiento: " + ex.getMessage(), ex);
     }
 }
+    public void expirarConsultasEmergencia() throws PersistenciaException {
+    String sentenciaSQL = "UPDATE Citas SET estado = 'No atendida' " +
+                          "WHERE id_cita IN (SELECT id_citaEmergencia FROM Citas_Emergencias) " +
+                          "AND estado = 'Agendada' " +
+                          "AND TIMESTAMPDIFF(MINUTE, fechaHoraCita, NOW()) > 10";
+
+    try (Connection con = conexion.crearConexion();
+         PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+
+        int filasAfectadas = stmt.executeUpdate();
+
+        if (filasAfectadas > 0) {
+            System.out.println("Consultas de emergencia expiradas correctamente.");
+        } else {
+            System.out.println("No hay consultas de emergencia vencidas.");
+        }
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al expirar consultas de emergencia: " + ex.getMessage(), ex);
+    }
+}
 
     
     

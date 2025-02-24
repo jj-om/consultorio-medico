@@ -114,7 +114,7 @@ public class MedicoDAO {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                historial.add("📅 Fecha: " + rs.getTimestamp("fechaHoraConsulta") +
+                historial.add("Fecha: " + rs.getTimestamp("fechaHoraConsulta") +
                               "Paciente: " + rs.getString("nombres") + " " + rs.getString("apellidoPaterno") + " " + rs.getString("apellidoMaterno") +
                               "Diagnóstico: " + rs.getString("diagnostico") +
                               "Tratamiento: " + rs.getString("tratamiento"));
@@ -126,6 +126,30 @@ public class MedicoDAO {
 
         return historial;
     }
+    public void cambiarEstadoMedico(int idMedico, boolean activo) throws PersistenciaException {
+    String nuevoEstado = activo ? "Activo" : "Inactivo";
+    String sentenciaSQL = "UPDATE Medicos SET estado = ? WHERE id_medico = ?";
+
+    try (Connection con = conexion.crearConexion();
+         PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+
+        stmt.setString(1, nuevoEstado);
+        stmt.setInt(2, idMedico);
+
+        int filasAfectadas = stmt.executeUpdate();
+
+        if (filasAfectadas > 0) {
+            System.out.println("Estado del médico actualizado a: " + nuevoEstado);
+        } else {
+            System.out.println("No se encontró el médico con el ID proporcionado.");
+        }
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al cambiar estado del médico: " + ex.getMessage(), ex);
+    }
+}
+
+    
 }
 
 
