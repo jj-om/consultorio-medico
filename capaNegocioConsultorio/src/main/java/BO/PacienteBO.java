@@ -105,7 +105,7 @@ public class PacienteBO {
         }
     }
     
-    public boolean actualizarActivista(int idPaciente, PacienteNuevoDTO pacienteNuevo, DireccionNuevaDTO direccionNueva) throws NegocioException {
+    public boolean actualizarPaciente(int idPaciente, PacienteNuevoDTO pacienteNuevo, DireccionNuevaDTO direccionNueva) throws NegocioException {
         // VALIDAR QUE EL DTO pacienteNuevo NO ESTE VACIO
         if (pacienteNuevo == null) {
             throw new NegocioException("El Paciente no puede ser nulo.");
@@ -115,6 +115,10 @@ public class PacienteBO {
         if (direccionNueva == null) {
             throw new NegocioException("La Direccion no puede ser nulo.");
         }
+        if (!pacienteNuevo.getCorreoElectronico().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+        throw new NegocioException("Correo electrónico no válido.");
+}
+
         
         // VERIFICAR QUE LOS CAMPOS REQUERIDOS NO ESTEN VACIOS
         if (pacienteNuevo.getNombres().isEmpty() ||

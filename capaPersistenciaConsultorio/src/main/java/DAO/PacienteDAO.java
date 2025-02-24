@@ -75,79 +75,7 @@ public class PacienteDAO implements IPacienteDAO {
         }
         return null;
     }
-     // Verificar si el paciente ya tiene una cita con el médico en la misma fecha
-    public boolean existeCitaElMismoDia(int idPaciente, int idMedico, LocalDate fecha) throws PersistenciaException {
-        //SENTENCIA SQL
-        String sentenciaSQL = "SELECT COUNT(*) FROM Citas WHERE id_paciente = ? AND id_medico = ? AND DATE(fecha_hora) = ?";
-        try (Connection con = conexion.crearConexion(); CallableStatement cs = con.prepareCall(sentenciaSQL);
-             PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
-            stmt.setInt(1, idPaciente);
-            stmt.setInt(2, idMedico);
-            stmt.setDate(3, java.sql.Date.valueOf(fecha));
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(PacienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return false;
-    }
 
-    // Verificar disponibilidad del médico
-    public boolean medicoDisponible(int idMedico, LocalDateTime fechaHora) throws PersistenciaException {
-                String sentenciaSQL = "SELECT COUNT(*) FROM Horarios_Medicos hm " +"JOIN Horarios h ON hm.id_horario = h.id_horario " +"WHERE hm.id_medico = ? " + "AND ? BETWEEN h.horaInicio AND h.horaFinal";
-        try (Connection con = conexion.crearConexion(); CallableStatement cs = con.prepareCall(sentenciaSQL);
-             PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
-            stmt.setInt(1, idMedico);
-            stmt.setTime(2, Time.valueOf(fechaHora.toLocalTime()));
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(PacienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return false;
-    }
-
-    // Insertar la cita en la base de datos 
-        public void agendarCita(Cita cita) throws PersistenciaException {
-    String sentenciaSQL = "CALL AgendarCita(?, ?, ?)"; //
-
-    try (Connection con = conexion.crearConexion();
-         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
-
-        cs.setInt(1, cita.getIdPaciente()); 
-        cs.setInt(2, cita.getIdMedico());   
-        cs.setTimestamp(3, Timestamp.valueOf(cita.getFechaHora())); // fecha_hora (DATETIME en MySQL)
-
-        cs.executeUpdate(); 
-        System.out.println("Cita agendada con exito");
-
-    } catch (SQLException ex) {
-        throw new PersistenciaException("Error al agendar la cita: " + ex.getMessage(), ex);
-    }
-}
-     //METODO PARA CANCELAR LA CITA
-        
-    public void cancelarCita(int idCita, int idPaciente) throws PersistenciaException {
-        //LLAMAMOS AL PROCEDIMIENTO ALMACENADO PARA CANCELAR CITA
-        String sentenciaSQL = "CALL CancelarCita(?, ?)"; // 
-
-    try (Connection con = conexion.crearConexion();
-         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
-        System.out.println("   - Cita ID: " + idCita);
-        System.out.println("   - Paciente ID: " + idPaciente);
-        cs.setInt(1, idCita); 
-        cs.setInt(2, idPaciente);  
-        cs.executeUpdate();
-        System.out.println("Cita cancelada con éxito.");
-
-    } catch (SQLException ex) {
-        throw new PersistenciaException("Error al cancelar la cita: " + ex.getMessage(), ex);
-    }
-}
     //METODO PARA GENERAR CITA DE EMERGENCIA
  public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
     String sentenciaSQL = "CALL GenerarCitaEmergencia(?, ?)";  //Llamada al procedimiento almacenado
