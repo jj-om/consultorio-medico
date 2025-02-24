@@ -10,6 +10,7 @@ package DTO;
  */
 
 
+import Entidades.Cita;
 import java.time.LocalDateTime;
 
 public class CitaDTO {
@@ -40,5 +41,15 @@ public class CitaDTO {
     public void setEstado(String estado) {
      this.estado = estado; 
 }
+
+    @Override
+    public String toString() {
+        return "CitaDTO{" + "idPaciente=" + idPaciente + ", idMedico=" + idMedico + ", fechaHora=" + fechaHora + ", estado=" + estado + '}';
+    }
+
+    public Cita toCita() {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+    
 }
 

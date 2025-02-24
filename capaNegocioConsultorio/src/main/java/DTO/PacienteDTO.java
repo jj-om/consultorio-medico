@@ -1,18 +1,18 @@
-package Entidades;
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package DTO;
+
+/**
+ *
+ * @author Gael
+ */
+import Entidades.Paciente;
 
 import java.sql.Date;
 
-/**
- * @author Ethan Valdez
- * @author Daniel Buelna
- * @author Manuel Guerrero
- * @author Jesus Osuna
- */
-
-
-
-public class Paciente {
-    private int id_paciente;
+public class PacienteDTO {
     private String nombres;
     private String apellidoPaterno;
     private String apellidoMaterno;
@@ -21,12 +21,11 @@ public class Paciente {
     private String correoElectronico;
     private String telefono;
     private Direccion direccion;
-    
-    public Paciente() {
+
+    public PacienteDTO() {
     }
 
-    public Paciente(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, Date fechaNacimiento, int edad, String correoElectronico, String telefono, Direccion direccion) {
-        this.id_paciente = id_paciente;
+    public PacienteDTO(String nombres, String apellidoPaterno, String apellidoMaterno, Date fechaNacimiento, int edad, String correoElectronico, String telefono) {
         this.nombres = nombres;
         this.apellidoPaterno = apellidoPaterno;
         this.apellidoMaterno = apellidoMaterno;
@@ -34,20 +33,8 @@ public class Paciente {
         this.edad = edad;
         this.correoElectronico = correoElectronico;
         this.telefono = telefono;
-        this.direccion = direccion;
+        
     }
-
-    
-
-    public int getId_paciente() {
-        return id_paciente;
-    }
-
-    public void setId_paciente(int id_paciente) {
-        this.id_paciente = id_paciente;
-    }
-
-
 
     public String getNombres() {
         return nombres;
@@ -105,19 +92,10 @@ public class Paciente {
         this.telefono = telefono;
     }
 
-    public Direccion getDireccion() {
-        return direccion;
-    }
-
-    public void setDireccion(Direccion direccion) {
-        this.direccion = direccion;
-    }
-
     @Override
     public String toString() {
-        return "Paciente{" + "id_paciente=" + id_paciente + ", nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", fechaNacimiento=" + fechaNacimiento + ", edad=" + edad + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + ", direccion=" + direccion + '}';
+        return "PacienteDTO{" + "nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", fechaNacimiento=" + fechaNacimiento + ", edad=" + edad + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + '}';
     }
-
-   
 }
+
 

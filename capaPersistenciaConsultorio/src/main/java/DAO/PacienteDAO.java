@@ -38,26 +38,23 @@ public class PacienteDAO implements IPacienteDAO {
     private static final Logger logger = Logger.getLogger(PacienteDAO.class.getName());
 
     @Override
-    public Paciente registrarPaciente(Paciente paciente) throws PersistenciaException {
-        // SENTENCIA DE COMANDO MYSQL
-        String sentenciaSQL = "CALL registrarPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+       public Paciente registrarPaciente(Paciente paciente) throws PersistenciaException {
+        String sentenciaSQL = "CALL registrarPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        // COMENZAMOS EL BLOQUE TRY-CATCH
-        try (Connection con = conexion.crearConexion(); CallableStatement cs = con.prepareCall(sentenciaSQL)) {
+        try (Connection con = conexion.crearConexion();
+             CallableStatement cs = con.prepareCall(sentenciaSQL)) {
 
-            // MANDAR PARAMETROS
             cs.setString(1, paciente.getNombres());
             cs.setString(2, paciente.getApellidoPaterno());
             cs.setString(3, paciente.getApellidoMaterno());
-            cs.setString(4, paciente.getCorreoElectronico());
-            cs.setString(5, paciente.getUsuario().getUsuario());
-            cs.setString(6, paciente.getUsuario().getContraseña());
+            cs.setDate(4, new java.sql.Date(paciente.getFechaNacimiento().getTime()));
+            cs.setInt(5, paciente.getEdad());
+            cs.setString(6, paciente.getCorreoElectronico());
             cs.setString(7, paciente.getTelefono());
             cs.setString(8, paciente.getDireccion().getCalle());
             cs.setInt(9, paciente.getDireccion().getNumero());
             cs.setString(10, paciente.getDireccion().getColonia());
 
-            // EJECUTAR LINEA
             boolean tieneResultados = cs.execute();
             if (tieneResultados) {
                 try (ResultSet rs = cs.getResultSet()) {
@@ -73,8 +70,34 @@ public class PacienteDAO implements IPacienteDAO {
             logger.log(Level.SEVERE, "Error al registrar al paciente", e);
             throw new PersistenciaException("Error al registrar al paciente", e);
         }
-        return null;
+        return paciente;
     }
+
+    public void actualizarDatosPaciente(Paciente paciente) throws PersistenciaException {
+        String sentenciaSQL = "CALL ActualizarDatosPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection con = conexion.crearConexion();
+             CallableStatement cs = con.prepareCall(sentenciaSQL)) {
+
+            cs.setInt(1, paciente.getId_paciente());
+            cs.setString(2, paciente.getNombres());
+            cs.setString(3, paciente.getApellidoPaterno());
+            cs.setString(4, paciente.getApellidoMaterno());
+            cs.setDate(5, new java.sql.Date(paciente.getFechaNacimiento().getTime()));
+            cs.setInt(6, paciente.getEdad());
+            cs.setString(7, paciente.getCorreoElectronico());
+            cs.setString(8, paciente.getTelefono());
+            cs.setString(9, paciente.getDireccion().getCalle());
+            cs.setInt(10, paciente.getDireccion().getNumero());
+            cs.setString(11, paciente.getDireccion().getColonia());
+
+            cs.executeUpdate();
+            logger.info("Datos del paciente actualizados correctamente.");
+        } catch (SQLException e) {
+            throw new PersistenciaException("Error al actualizar datos del paciente: " + e.getMessage(), e);
+        }
+    }
+
 
     //METODO PARA GENERAR CITA DE EMERGENCIA
  public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
@@ -97,40 +120,6 @@ public class PacienteDAO implements IPacienteDAO {
     return folio;
 }
     // METODO PARA ACTUALIZAR LOS DATOS DEL CLIENTE
-   public void actualizarDatosPaciente(Paciente paciente) throws PersistenciaException {
-    String sentenciaSQL = "CALL ActualizarDatosPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    try (Connection con = conexion.crearConexion();
-         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
-
-        System.out.println("Enviando datos a ActualizarDatosPaciente:");
-        System.out.println("   - ID Paciente: " + paciente.getId_paciente());
-        System.out.println("   - Nombre: " + paciente.getNombres());
-        System.out.println("   - Apellido Paterno: " + paciente.getApellidoPaterno());
-        System.out.println("   - Apellido Materno: " + paciente.getApellidoMaterno());
-        System.out.println("   - Correo: " + paciente.getCorreoElectronico());
-        System.out.println("   - Teléfono: " + paciente.getTelefono());
-        System.out.println("   - Dirección: " + paciente.getDireccion().getCalle() + 
-                           ", " + paciente.getDireccion().getNumero() + 
-                           ", " + paciente.getDireccion().getColonia());
-
-        cs.setInt(1, paciente.getId_paciente());
-        cs.setString(2, paciente.getNombres());
-        cs.setString(3, paciente.getApellidoPaterno());
-        cs.setString(4, paciente.getApellidoMaterno());
-        cs.setString(5, paciente.getCorreoElectronico());
-        cs.setString(6, paciente.getTelefono());
-        cs.setString(7, paciente.getDireccion().getCalle());
-        cs.setInt(8, paciente.getDireccion().getNumero());
-        cs.setString(9, paciente.getDireccion().getColonia());
-
-        cs.executeUpdate();
-        System.out.println("Datos del paciente actualizados correctamente.");
-
-    } catch (SQLException ex) {
-        throw new PersistenciaException("Error al actualizar datos del paciente: " + ex.getMessage(), ex);
-    }
-   }
        public List<String> consultarHistorialConsultas(int idPaciente, String especialidad, Date fechaInicio, Date fechaFin) throws PersistenciaException {
         List<String> historial = new ArrayList<>();
         StringBuilder sentenciaSQL = new StringBuilder(
