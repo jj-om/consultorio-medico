@@ -1,30 +1,39 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package DTO;
 
 /**
- * @author Ethan Valdez
- * @author Daniel Buelna
- * @author Manuel Guerrero
- * @author Jesus Osuna
+ *
+ * @author Gael
  */
+import Entidades.Paciente;
+
+import java.sql.Date;
 
 public class PacienteNuevoDTO {
-    
     private String nombres;
     private String apellidoPaterno;
     private String apellidoMaterno;
+    private Date fechaNacimiento;
+    private int edad;
     private String correoElectronico;
     private String telefono;
-    
+    private DireccionNuevaDTO direccion;
+
     public PacienteNuevoDTO() {
-        
     }
 
-    public PacienteNuevoDTO(String nombres, String apellidoPaterno, String apellidoMaterno, String correoElectronico, String telefono) {
+    public PacienteNuevoDTO(String nombres, String apellidoPaterno, String apellidoMaterno, Date fechaNacimiento, int edad, String correoElectronico, String telefono) {
         this.nombres = nombres;
         this.apellidoPaterno = apellidoPaterno;
         this.apellidoMaterno = apellidoMaterno;
+        this.fechaNacimiento = fechaNacimiento;
+        this.edad = edad;
         this.correoElectronico = correoElectronico;
         this.telefono = telefono;
+        
     }
 
     public String getNombres() {
@@ -51,6 +60,22 @@ public class PacienteNuevoDTO {
         this.apellidoMaterno = apellidoMaterno;
     }
 
+    public Date getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(Date fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    public int getEdad() {
+        return edad;
+    }
+
+    public void setEdad(int edad) {
+        this.edad = edad;
+    }
+
     public String getCorreoElectronico() {
         return correoElectronico;
     }
@@ -69,6 +94,8 @@ public class PacienteNuevoDTO {
 
     @Override
     public String toString() {
-        return "PacienteNuevoDTO{" + "nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + '}';
+        return "PacienteDTO{" + "nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", fechaNacimiento=" + fechaNacimiento + ", edad=" + edad + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + '}';
     }
 }
+
+

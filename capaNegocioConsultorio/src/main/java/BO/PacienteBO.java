@@ -4,10 +4,9 @@ import Conexion.IConexionBD;
 import DAO.IPacienteDAO;
 import DAO.PacienteDAO;
 import DTO.DireccionNuevaDTO;
-import DTO.PacienteDTO;
+import DTO.PacienteNuevoDTO;
 import DTO.PacienteNuevoDTO;
 import DTO.UsuarioNuevoDTO;
-import Entidades.Direccion;
 import Entidades.Paciente;
 import Entidades.Usuario;
 import Exception.NegocioException;
@@ -39,7 +38,7 @@ import java.util.logging.Logger;
         this.pacienteDAO = new PacienteDAO(conexion);
     }
 
-    public void registrarPaciente(PacienteDTO pacienteDTO) throws NegocioException {
+    public void registrarPaciente(PacienteNuevoDTO pacienteDTO) throws NegocioException {
         validarPacienteDTO(pacienteDTO);
         try {
             pacienteDAO.registrarPaciente(convertirDTOaPaciente(pacienteDTO));
@@ -59,13 +58,13 @@ import java.util.logging.Logger;
         }
     }
 
-    private void validarPacienteDTO(PacienteDTO pacienteDTO) throws NegocioException {
+    private void validarPacienteDTO(PacienteNuevoDTO pacienteDTO) throws NegocioException {
         if (pacienteDTO == null || pacienteDTO.getNombres() == null || pacienteDTO.getCorreoElectronico() == null || pacienteDTO.getFechaNacimiento() == null) {
             throw new NegocioException("Los datos del paciente no pueden ser nulos.");
         }
     }
 
-    private Paciente convertirDTOaPaciente(PacienteDTO pacienteDTO) {
+    private Paciente convertirDTOaPaciente(PacienteNuevoDTO pacienteDTO) {
         Paciente paciente = new Paciente();
         paciente.setNombres(pacienteDTO.getNombres());
         paciente.setApellidoPaterno(pacienteDTO.getApellidoPaterno());
