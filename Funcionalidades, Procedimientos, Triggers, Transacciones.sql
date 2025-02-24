@@ -109,13 +109,15 @@ DELIMITER ;
 
 
 -- PROCEDIMIENTO ALMACENADO PARA REGISTRAR A UN PACIENTE
+
 DELIMITER &&
 CREATE PROCEDURE registrarPaciente(
-	-- SELECCIONA LOS ATRIBUTOS
+    -- SELECCIONA LOS ATRIBUTOS
     IN paciente_nombres VARCHAR(40),
     IN paciente_apellidoPaterno VARCHAR(20),
     IN paciente_apellidoMaterno VARCHAR(20),
     IN paciente_fechaNacimiento DATE,
+    IN paciente_edad INT,
     IN paciente_correoElectronico VARCHAR(70),
     IN paciente_usuario VARCHAR(40),
     IN paciente_contraseña VARCHAR(40),
@@ -125,8 +127,7 @@ CREATE PROCEDURE registrarPaciente(
     IN paciente_colonia VARCHAR(40)
 )
 BEGIN
-
-	-- DECLARAMOS LAS VARIABLES DE VERIFICACION
+    -- DECLARAMOS LAS VARIABLES DE VERIFICACION
     DECLARE verificar_id_direccion INT;
     DECLARE verificar_existePaciente INT;
     DECLARE ultimo_usuario INT;
@@ -136,30 +137,30 @@ BEGIN
     FROM Pacientes
     WHERE correoElectronico = paciente_correoElectronico;
 
-	-- SI NO ENCUENTRA COINCIDENCIAS SIGUE EL PROCESO
+    -- SI NO ENCUENTRA COINCIDENCIAS SIGUE EL PROCESO
     IF verificar_existePaciente = 0 THEN
         -- INSERTAMOS LA DIRECCION ANTES DEL CLIENTE
         INSERT INTO Direcciones (calle, numero, colonia)
         VALUES (paciente_calle, paciente_numero, paciente_colonia);
 
-        -- VERIFICAMOS QUE LA DIRECCION HAYA SIDO AGRAGADA CORRECTAMENTE
+        -- VERIFICAMOS QUE LA DIRECCION HAYA SIDO AGREGADA CORRECTAMENTE
         SET verificar_id_direccion = LAST_INSERT_ID();
 
-		-- REGISTRAMOS AL PACIENTE EN LA TABLA USUARIOS
+        -- REGISTRAMOS AL PACIENTE EN LA TABLA USUARIOS
         INSERT INTO Usuarios (usuario, contraseña, tipo)
         VALUES (paciente_usuario, paciente_contraseña, 'Paciente');
         SET ultimo_usuario = LAST_INSERT_ID();
 
-        -- INSERTAMOS AHORA SI AL CLIENTE
-        INSERT INTO Pacientes (id_paciente, nombres, apellidoPaterno, apellidoMaterno, fechaNacimiento, correoElectronico, telefono, id_direccion)
-        VALUES (ultimo_usuario, paciente_nombres, paciente_apellidoPaterno, paciente_apellidoMaterno, paciente_fechaNacimiento, paciente_correoElectronico, paciente_telefono, verificar_id_direccion);
+        -- INSERTAMOS AHORA SÍ AL PACIENTE
+        INSERT INTO Pacientes (id_paciente, nombres, apellidoPaterno, apellidoMaterno, fechaNacimiento, edad, correoElectronico, telefono, id_direccion)
+        VALUES (ultimo_usuario, paciente_nombres, paciente_apellidoPaterno, paciente_apellidoMaterno, paciente_fechaNacimiento, paciente_edad, paciente_correoElectronico, paciente_telefono, verificar_id_direccion);
     
     ELSE
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El correo electrónico ya está registrado.';
     END IF;
 END &&
-
 DELIMITER ;
+
 
 -- PROCEDIMIENTO PARA REGISTRAR UN MEDICO -- USO DE NOSOTROS, NO ES PARA EL PROGRAMA
 DELIMITER &&
@@ -205,20 +206,19 @@ END &&
 
 DELIMITER ;
 
+
 -- PROCEDIMIENTO PARA AGENTAR UNA CITA
 DELIMITER //
-
 CREATE PROCEDURE agendarCita(
     IN paciente_id INT,
     IN medico_id INT,
     IN fecha_hora DATETIME 
 )
 BEGIN
-    -- Declaración de variables
     DECLARE contar_citas INT;
     DECLARE horario_valido INT;
-
-    -- Validar si el paciente ya tiene una cita con el mismo médico en la misma fecha
+    
+    -- Validar si el paciente ya tiene una cita con este médico en la misma fecha
     SELECT COUNT(*) INTO contar_citas 
     FROM Citas 
     WHERE id_paciente = paciente_id 
@@ -229,25 +229,25 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El paciente ya tiene una cita con este médico en la misma fecha';
     END IF;
 
-    -- Validar si el médico está disponible en el horario solicitado
+    -- Validar si el médico está disponible en el horario solicitado    -- comprobando además que el día de la semana coincide
     SELECT COUNT(*) INTO horario_valido 
-    FROM horarios_medicos AS HM
-    INNER JOIN horarios AS H ON HM.id_horario = H.id_horario 
+    FROM Horarios_Medicos AS HM
+    INNER JOIN Horarios AS H ON HM.id_horario = H.id_horario 
     WHERE HM.id_medico = medico_id
-		AND TIME(fecha_hora) BETWEEN H.horaInicio AND H.horaFinal;
+      AND TIME(fecha_hora) BETWEEN H.horaInicio AND H.horaFinal
+      AND LOWER(H.diaSemana) = LOWER(DAYNAME(fecha_hora));
 
     IF horario_valido = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El médico no está disponible en este horario';
     END IF;
 
-    -- Insertar la cita si todas las validaciones se cumplen
+    -- Insertar la cita usando solo la fecha y el estado 'agendada'
     INSERT INTO Citas (id_paciente, id_medico, fechaHoraCita, estado) 
-    VALUES (paciente_id, medico_id, fecha_hora, 'agendada');
-
-
+    VALUES (paciente_id, medico_id, DATE(fecha_hora), 'agendada');
 END //
-
 DELIMITER ;
+
+
 
 -- PROCEDIMIENTO ALMACENADO PARA CANCELAR UNA CITA
 DELIMITER //
@@ -348,8 +348,51 @@ BEGIN
         apellidoMaterno = nuevo_apellidoMaterno, fechaNacimiento = nuevo_fechanacimiento,
 		telefono = nuevo_telefono
     WHERE id_paciente = paciente_id;
-    -- Confirmar la transacción
+    
     COMMIT;
 END //
 
+DELIMITER ;
+
+DELIMITER &&
+
+CREATE PROCEDURE GenerarCitaEmergencia(
+    IN paciente_id INT,
+    OUT folio INT
+)
+BEGIN
+    DECLARE medico_disponible INT;
+    DECLARE nuevo_id INT;
+
+    -- Seleccionar el primer médico activo disponible de forma aleatoria
+    SELECT id_medico INTO medico_disponible
+    FROM Medicos
+    WHERE estado = 'Activo'
+    ORDER BY RAND()
+    LIMIT 1;
+    
+    IF medico_disponible IS NULL THEN
+        SIGNAL SQLSTATE '45000' 
+            SET MESSAGE_TEXT = 'No hay médicos disponibles en este momento';
+    END IF;
+    
+    -- Generar un código de folio aleatorio de 8 dig
+    SET folio = 10000000 + FLOOR(RAND() * 90000000);
+    
+    -- Insertar la cita de emergencia en la tabla Citas con la fecha actual y estado 'agendada'
+    INSERT INTO Citas (fechaHoraCita, estado, id_paciente, id_medico)
+    VALUES (CURDATE(), 'agendada', paciente_id, medico_disponible);
+    
+    -- Obtener el ID de la cita generada
+    SET nuevo_id = LAST_INSERT_ID();
+    
+    -- Insertar la informacion tabla Citas_Emergencias\n
+    INSERT INTO Citas_Emergencias (id_citaEmergencia, folio)
+    VALUES (nuevo_id, folio);
+    
+    -- Registrar en la tabla Auditorias
+    INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+    VALUES ('Cita de emergencia generada', paciente_id, nuevo_id);
+    
+END &&
 DELIMITER ;
