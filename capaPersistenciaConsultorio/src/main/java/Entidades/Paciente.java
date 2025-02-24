@@ -37,7 +37,9 @@ public class Paciente {
         this.direccion = direccion;
     }
 
-    
+    public Paciente(String correoElectronico) {
+        this.correoElectronico = correoElectronico;
+    }
 
     public int getId_paciente() {
         return id_paciente;

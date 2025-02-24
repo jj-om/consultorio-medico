@@ -61,11 +61,12 @@ public class SesionForm extends javax.swing.JFrame {
         if (tipoUsuario.equalsIgnoreCase("Paciente")) {
             PrinPacienteForm principal = new PrinPacienteForm();
             principal.setVisible(true);
+        } else if (tipoUsuario.equalsIgnoreCase("Medico")) {
+            //pantallas del medico
         } else {
-            // Manejar otro tipo de usuario si es necesario
             JOptionPane.showMessageDialog(this, "Tipo de usuario no reconocido.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        this.dispose(); // Cerrar la ventana de inicio de sesión
+        this.dispose();
     }
 
     @SuppressWarnings("unchecked")

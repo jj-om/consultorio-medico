@@ -1,21 +1,14 @@
 package DAO;
 
 import Conexion.IConexionBD;
-import Entidades.Cita;
 import Entidades.Paciente;
 import Exception.PersistenciaException;
-import static com.mysql.cj.conf.PropertyKey.logger;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,7 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * @author Carmen Beltran
+ * @author Ethan Valdez
+ * @author Daniel Buelna
  * @author Manuel Guerrero
  * @author Jesus Osuna
  */
@@ -38,11 +32,10 @@ public class PacienteDAO implements IPacienteDAO {
     private static final Logger logger = Logger.getLogger(PacienteDAO.class.getName());
 
     @Override
-       public Paciente registrarPaciente(Paciente paciente) throws PersistenciaException {
+    public Paciente registrarPaciente(Paciente paciente) throws PersistenciaException {
         String sentenciaSQL = "CALL registrarPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection con = conexion.crearConexion();
-             CallableStatement cs = con.prepareCall(sentenciaSQL)) {
+        try (Connection con = conexion.crearConexion(); CallableStatement cs = con.prepareCall(sentenciaSQL)) {
 
             cs.setString(1, paciente.getNombres());
             cs.setString(2, paciente.getApellidoPaterno());
@@ -73,11 +66,30 @@ public class PacienteDAO implements IPacienteDAO {
         return paciente;
     }
 
-    public void actualizarDatosPaciente(Paciente paciente) throws PersistenciaException {
+    public boolean recuperarPacienteCorreoElectronico(String correo) throws PersistenciaException {
+        String sentenciaSQL = "CALL consultarPacienteCorreo(?)";
+
+        try (Connection con = conexion.crearConexion(); CallableStatement cb = con.prepareCall(sentenciaSQL)) {
+
+            cb.setString(1, correo);
+
+            try (ResultSet rs = cb.executeQuery()) {
+                if (rs.next()) {
+                    return true;
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new PersistenciaException("Error al consultar paciente por correo: " + e.getMessage());
+        }
+
+        return false;
+    }
+
+    public boolean actualizarDatosPaciente(Paciente paciente) throws PersistenciaException {
         String sentenciaSQL = "CALL ActualizarDatosPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection con = conexion.crearConexion();
-             CallableStatement cs = con.prepareCall(sentenciaSQL)) {
+        try (Connection con = conexion.crearConexion(); CallableStatement cs = con.prepareCall(sentenciaSQL)) {
 
             cs.setInt(1, paciente.getId_paciente());
             cs.setString(2, paciente.getNombres());
@@ -93,42 +105,42 @@ public class PacienteDAO implements IPacienteDAO {
 
             cs.executeUpdate();
             logger.info("Datos del paciente actualizados correctamente.");
+            return true;
         } catch (SQLException e) {
             throw new PersistenciaException("Error al actualizar datos del paciente: " + e.getMessage(), e);
         }
     }
 
-
     //METODO PARA GENERAR CITA DE EMERGENCIA
- public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
-    String sentenciaSQL = "CALL GenerarCitaEmergencia(?, ?)";  //Llamada al procedimiento almacenado
-    int folio = -1;  // Para almacenar el folio generado
+    public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
+        String sentenciaSQL = "CALL GenerarCitaEmergencia(?, ?)";  //Llamada al procedimiento almacenado
+        int folio = -1;  // Para almacenar el folio generado
 
-    try (Connection con = conexion.crearConexion();
-         CallableStatement cs = con.prepareCall(sentenciaSQL)) { 
-        cs.setInt(1, idPaciente);  
-        cs.registerOutParameter(2, Types.INTEGER);  
-        cs.executeUpdate();
+        try (Connection con = conexion.crearConexion(); CallableStatement cs = con.prepareCall(sentenciaSQL)) {
+            cs.setInt(1, idPaciente);
+            cs.registerOutParameter(2, Types.INTEGER);
+            cs.executeUpdate();
 
-        // Obtener el folio generado
-        folio = cs.getInt(2);
-        System.out.println("Cita de emergencia generada con folio: " + folio);
+            // Obtener el folio generado
+            folio = cs.getInt(2);
+            System.out.println("Cita de emergencia generada con folio: " + folio);
 
-    } catch (SQLException ex) {
-        throw new PersistenciaException("Error al generar cita de emergencia: " + ex.getMessage(), ex);
+        } catch (SQLException ex) {
+            throw new PersistenciaException("Error al generar cita de emergencia: " + ex.getMessage(), ex);
+        }
+        return folio;
     }
-    return folio;
-}
+
     // METODO PARA ACTUALIZAR LOS DATOS DEL CLIENTE
-       public List<String> consultarHistorialConsultas(int idPaciente, String especialidad, Date fechaInicio, Date fechaFin) throws PersistenciaException {
+    public List<String> consultarHistorialConsultas(int idPaciente, String especialidad, Date fechaInicio, Date fechaFin) throws PersistenciaException {
         List<String> historial = new ArrayList<>();
         StringBuilder sentenciaSQL = new StringBuilder(
-            "SELECT c.fechaHoraConsulta, c.motivo, c.diagnostico, c.tratamiento, m.especialidad " +
-            "FROM Consultas c " +
-            "JOIN Citas ci ON c.id_cita = ci.id_cita " +
-            "JOIN Medicos m ON ci.id_medico = m.id_medico " +
-            "WHERE ci.id_paciente = ? " +  
-            "AND c.fechaHoraConsulta BETWEEN ? AND ?"
+                "SELECT c.fechaHoraConsulta, c.motivo, c.diagnostico, c.tratamiento, m.especialidad "
+                + "FROM Consultas c "
+                + "JOIN Citas ci ON c.id_cita = ci.id_cita "
+                + "JOIN Medicos m ON ci.id_medico = m.id_medico "
+                + "WHERE ci.id_paciente = ? "
+                + "AND c.fechaHoraConsulta BETWEEN ? AND ?"
         );
 
         if (especialidad != null && !especialidad.isEmpty()) {
@@ -137,8 +149,7 @@ public class PacienteDAO implements IPacienteDAO {
 
         sentenciaSQL.append(" ORDER BY c.fechaHoraConsulta DESC");
 
-        try (Connection con = conexion.crearConexion();
-             PreparedStatement stmt = con.prepareStatement(sentenciaSQL.toString())) {
+        try (Connection con = conexion.crearConexion(); PreparedStatement stmt = con.prepareStatement(sentenciaSQL.toString())) {
 
             stmt.setInt(1, idPaciente);
             stmt.setDate(2, (java.sql.Date) fechaInicio);
@@ -150,11 +161,11 @@ public class PacienteDAO implements IPacienteDAO {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                historial.add("Fecha: " + rs.getTimestamp("fechaHoraConsulta") +
-                              "Especialidad: " + rs.getString("especialidad") +
-                              "Motivo: " + rs.getString("motivo") +
-                              "Diagnóstico: " + rs.getString("diagnostico") +
-                              "Tratamiento: " + rs.getString("tratamiento"));
+                historial.add("Fecha: " + rs.getTimestamp("fechaHoraConsulta")
+                        + "Especialidad: " + rs.getString("especialidad")
+                        + "Motivo: " + rs.getString("motivo")
+                        + "Diagnóstico: " + rs.getString("diagnostico")
+                        + "Tratamiento: " + rs.getString("tratamiento"));
             }
 
         } catch (SQLException ex) {
@@ -164,20 +175,3 @@ public class PacienteDAO implements IPacienteDAO {
         return historial;
     }
 }
-   
-   
-   
-
-
-
-    
-    
-    
-   
-
-
-
-
-
-
-

@@ -3,25 +3,17 @@ package BO;
 import Conexion.IConexionBD;
 import DAO.IPacienteDAO;
 import DAO.PacienteDAO;
-import DTO.DireccionNuevaDTO;
 import DTO.PacienteNuevoDTO;
-import DTO.PacienteNuevoDTO;
-import DTO.UsuarioNuevoDTO;
 import Entidades.Paciente;
-import Entidades.Usuario;
 import Exception.NegocioException;
 import Exception.PersistenciaException;
-import Mapper.DireccionMapper;
-import Mapper.PacienteMapper;
-import Mapper.UsuarioMapper;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Base64;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * @author Ethan Valdez
@@ -31,13 +23,13 @@ import java.util.logging.Logger;
  */
 public class PacienteBO {
 
-    private final PacienteDAO pacienteDAO;
+    private final IPacienteDAO pacienteDAO;
 
     public PacienteBO(IConexionBD conexion) {
         this.pacienteDAO = new PacienteDAO(conexion);
     }
 
-    public void registrarPaciente(PacienteNuevoDTO pacienteDTO) throws NegocioException {
+    public void registrarPaciente(PacienteNuevoDTO pacienteDTO) throws NegocioException, PersistenciaException {
         validarPacienteDTO(pacienteDTO);
         try {
             pacienteDAO.registrarPaciente(convertirDTOaPaciente(pacienteDTO));
@@ -57,10 +49,32 @@ public class PacienteBO {
         }
     }
 
-    private void validarPacienteDTO(PacienteNuevoDTO pacienteDTO) throws NegocioException {
+    private void validarPacienteDTO(PacienteNuevoDTO pacienteDTO) throws NegocioException, PersistenciaException {
         if (pacienteDTO == null || pacienteDTO.getNombres() == null || pacienteDTO.getCorreoElectronico() == null || pacienteDTO.getFechaNacimiento() == null) {
             throw new NegocioException("Los datos del paciente no pueden ser nulos.");
         }
+
+        LocalDate hoy = LocalDate.now();
+        Date fechaActual = (Date) Date.from(hoy.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        if (pacienteDTO.getFechaNacimiento().after(fechaActual)) {
+            throw new NegocioException("Fecha de nacimiento inválida.");
+        }
+
+        String regexTelefono = "^[0-9]{10}$";
+        if (!Pattern.matches(regexTelefono, pacienteDTO.getTelefono())) {
+            throw new NegocioException("Número de teléfono inválido.");
+        }
+
+        String regexCorreo = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        if (!Pattern.matches(regexCorreo, pacienteDTO.getCorreoElectronico())) {
+            throw new NegocioException("Correo electrónico inválido.");
+        }
+        
+        if (pacienteDAO.recuperarPacienteCorreoElectronico(pacienteDTO.getCorreoElectronico())) {
+            throw new NegocioException("Correo electrónico ya registrado");
+        }
+        
     }
 
     private Paciente convertirDTOaPaciente(PacienteNuevoDTO pacienteDTO) {
