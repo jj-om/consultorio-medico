@@ -1,7 +1,8 @@
 package Entidades;
 
-/**
- * @author Carmen Beltran
+/** 
+ * @author Ethan Valdez
+ * @author Daniel Buelna Andujo
  * @author Manuel Guerrero
  * @author Jesus Osuna
  */

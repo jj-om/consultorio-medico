@@ -29,9 +29,8 @@ import java.util.logging.Logger;
  * @author Manuel Guerrero
  * @author Jesus Osuna
  */
+public class PacienteBO {
 
-
-    public class PacienteBO {
     private final PacienteDAO pacienteDAO;
 
     public PacienteBO(IConexionBD conexion) {
@@ -76,13 +75,10 @@ import java.util.logging.Logger;
         return paciente;
     }
 
-
-
-
     // METODO PRIVADO PARA ENCRIPTAR LA contraseña DEL Usuario 
     private String hash(String data) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hashedBytes = digest.digest(data.getBytes());
         return Base64.getEncoder().encodeToString(hashedBytes);
     }
-    }
+}

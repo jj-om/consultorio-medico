@@ -7,8 +7,9 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @author Carmen Beltran
+/** 
+ * @author Ethan Valdez
+ * @author Daniel Buelna Andujo
  * @author Manuel Guerrero
  * @author Jesus Osuna
  */
@@ -16,7 +17,7 @@ import java.util.logging.Logger;
 public class ConexionBD implements IConexionBD{
 
     final String USUARIO = "root";
-    final String PASS = "bjxk3801";
+    final String PASS = "root";
     final String CADENA_CONEXION = "jdbc:mysql://localhost:3306/consultoriomedico";
 
     @Override

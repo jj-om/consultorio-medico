@@ -1,47 +1,70 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package DAO;
 
 /**
- *
- * @author Gael
+ * @author Ethan Valdez
+ * @author Daniel Buelna Andujo
+ * @author Manuel Guerrero
+ * @author Jesus Osuna
  */
 import Conexion.IConexionBD;
+import Entidades.Usuario;
 import java.sql.*;
 import Exception.PersistenciaException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class UsuarioDAO {
+public class UsuarioDAO implements IUsuarioDAO {
+
     IConexionBD conexion;
 
     public UsuarioDAO(IConexionBD conexion) {
         this.conexion = conexion;
     }
 
-    public String validarCredenciales(String usuario, String contraseña) throws PersistenciaException {
-        String sentenciaSQL = "SELECT id_usuario, tipo FROM Usuarios WHERE usuario = ? AND contraseña = ?";
+    @Override
+    public Usuario recuperarUsuario(String usuario, String contraseña) throws PersistenciaException {
+        Usuario usEncontrado = null;
+        String sentenciaSQL = "SELECT id_usuario, usuario, contraseña, tipo FROM Usuarios WHERE usuario = ?";
 
-        try (Connection con = conexion.crearConexion();
-             PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+        try (Connection con = conexion.crearConexion(); PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
 
             stmt.setString(1, usuario);
-            stmt.setString(2, contraseña);
+
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
+                String contraseñaHashBD = rs.getString("contraseña");
                 String tipoUsuario = rs.getString("tipo");
                 int idUsuario = rs.getInt("id_usuario");
 
-                System.out.println("Inicio de sesión exitoso. Tipo: " + tipoUsuario + " | ID: " + idUsuario);
-                return tipoUsuario; // Puede ser "Paciente" o "Medico"
+                if (hash(contraseña).equals(hash(contraseñaHashBD))) {
+                    usEncontrado = new Usuario();
+                    usEncontrado.setId_usuario(idUsuario);
+                    usEncontrado.setUsuario(usuario);
+                    usEncontrado.setContraseña(hash(contraseñaHashBD));
+                    usEncontrado.setTipo(tipoUsuario);
+                    return usEncontrado;
+                } else {
+                    throw new PersistenciaException("Contraseña incorrecta.");
+                }
             } else {
-                throw new PersistenciaException("Usuario o contraseña incorrectos.");
+                throw new PersistenciaException("Usuario no encontrado.");
             }
 
         } catch (SQLException ex) {
-            throw new PersistenciaException("Error al validar credenciales: " + ex.getMessage(), ex);
+            throw new PersistenciaException("Error al validar las credenciales: " + ex.getMessage(), ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(UsuarioDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return usEncontrado;
+    }
+
+    private String hash(String data) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hashedBytes = digest.digest(data.getBytes());
+        return Base64.getEncoder().encodeToString(hashedBytes);
     }
 }
-
