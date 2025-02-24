@@ -85,6 +85,16 @@ public class CitaBO {
             throw new NegocioException("Error al registrar diagnóstico y tratamiento: " + ex.getMessage(), ex);
         }
     }
+        public int generarCitaEmergencia(int idPaciente) throws NegocioException {
+        if (idPaciente <= 0) {
+            throw new NegocioException("ID de paciente inválido.");
+        }
+        try {
+            return citaDAO.generarCitaEmergencia(idPaciente);
+        } catch (PersistenciaException ex) {
+            throw new NegocioException("Error al generar la cita de emergencia: " + ex.getMessage(), ex);
+        }
+    }
 }
 
 

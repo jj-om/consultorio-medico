@@ -158,7 +158,7 @@ public class CitaDAO {
 
         cs.setInt(1, cita.getIdPaciente()); 
         cs.setInt(2, cita.getIdMedico());   
-        cs.setTimestamp(3, Timestamp.valueOf(cita.getFechaHora())); // fecha_hora (DATETIME en MySQL)
+        cs.setTimestamp(3, Timestamp.valueOf(cita.getFechaHora())); 
 
         cs.executeUpdate(); 
         System.out.println("Cita agendada con exito");
@@ -167,5 +167,25 @@ public class CitaDAO {
         throw new PersistenciaException("Error al agendar la cita: " + ex.getMessage(), ex);
     }
 }
+        public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
+        String sentenciaSQL = "CALL GenerarCitaEmergencia(?, ?)";
+        int folio = -1;
+        
+        try (Connection con = conexion.crearConexion();
+             CallableStatement cs = con.prepareCall(sentenciaSQL)) {
+             
+            cs.setInt(1, idPaciente);
+            cs.registerOutParameter(2, Types.INTEGER);
+            cs.executeUpdate();
+            
+            folio = cs.getInt(2);
+            System.out.println("Cita de emergencia generada con folio: " + folio);
+            
+        } catch (SQLException ex) {
+            throw new PersistenciaException("Error al generar cita de emergencia: " + ex.getMessage(), ex);
+        }
+        
+        return folio;
+    }
 }
 
