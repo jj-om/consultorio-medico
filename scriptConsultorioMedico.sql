@@ -9,7 +9,7 @@ USE consultorioMedico;
 CREATE TABLE Usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     usuario VARCHAR(40) UNIQUE NOT NULL,
-    contraseña VARCHAR(40) NOT NULL,
+    contraseña VARCHAR(64) NOT NULL,
     tipo ENUM('Paciente', 'Medico') NOT NULL
 );
 
