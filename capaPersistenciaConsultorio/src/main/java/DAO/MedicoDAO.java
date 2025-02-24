@@ -94,8 +94,38 @@ public class MedicoDAO {
     } catch (SQLException ex) {
         throw new PersistenciaException("Error al obtener detalles de la consulta: " + ex.getMessage(), ex);
     }
+    }
+    public List<String> consultarHistorialMedico(int idMedico, Date fechaInicio, Date fechaFin) throws PersistenciaException {
+        List<String> historial = new ArrayList<>();
+        String sentenciaSQL = "SELECT c.fechaHoraConsulta, p.nombres, p.apellidoPaterno, p.apellidoMaterno, c.diagnostico, c.tratamiento " +
+                              "FROM Consultas c " +
+                              "JOIN Citas ci ON c.id_cita = ci.id_cita " +
+                              "JOIN Pacientes p ON ci.id_paciente = p.id_paciente " +
+                              "WHERE ci.id_medico = ? " +
+                              "AND c.fechaHoraConsulta BETWEEN ? AND ? " +
+                              "ORDER BY c.fechaHoraConsulta DESC";
+
+        try (Connection con = conexion.crearConexion();
+             PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+
+            stmt.setInt(1, idMedico);
+            stmt.setDate(2, fechaInicio);
+            stmt.setDate(3, fechaFin);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                historial.add("📅 Fecha: " + rs.getTimestamp("fechaHoraConsulta") +
+                              "Paciente: " + rs.getString("nombres") + " " + rs.getString("apellidoPaterno") + " " + rs.getString("apellidoMaterno") +
+                              "Diagnóstico: " + rs.getString("diagnostico") +
+                              "Tratamiento: " + rs.getString("tratamiento"));
+            }
+
+        } catch (SQLException ex) {
+            throw new PersistenciaException("Error al consultar historial de consultas: " + ex.getMessage(), ex);
+        }
+
+        return historial;
+    }
 }
 
-
-}
 

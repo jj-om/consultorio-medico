@@ -245,6 +245,28 @@ public class PacienteDAO implements IPacienteDAO {
 
         return historial;
     }
+    public void verificarAsistenciaCita(int idCita) throws PersistenciaException {
+        String sentenciaSQL = "UPDATE Citas SET estado = 'No asistió paciente' " +
+                              "WHERE id_cita = ? AND estado = 'Agendada' " +
+                              "AND TIMESTAMPDIFF(MINUTE, fechaHoraCita, NOW()) > 15";
+
+        try (Connection con = conexion.crearConexion();
+             PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+
+            stmt.setInt(1, idCita);
+            int filasAfectadas = stmt.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("Cita actualizada a 'No asistió paciente'");
+            } else {
+                System.out.println("Aún en tiempo o ya asistió.");
+            }
+
+        } catch (SQLException ex) {
+            throw new PersistenciaException("Error al verificar asistencia: " + ex.getMessage(), ex);
+        }
+    }   
+       
 }
    
    

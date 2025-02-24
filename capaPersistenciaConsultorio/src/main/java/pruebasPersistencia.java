@@ -27,34 +27,13 @@ public class pruebasPersistencia {
         Scanner scanner = new Scanner (System.in);
         UsuarioDAO usuarioDAO = new UsuarioDAO(conexion);
         MedicoDAO medicoDAO = new MedicoDAO(conexion);
-        System.out.print("ID del Médico: ");
-        int idMedico = scanner.nextInt();
-        scanner.nextLine();
-        System.out.print("Fecha (YYYY-MM-DD): ");
-        String fechaStr = scanner.nextLine();
-        Date fecha = Date.valueOf(fechaStr);    
-        int idPaciente = 1;
-        int idCita = 5;
-        LocalDateTime fechaHora = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0); // ?
-        String especialidad = "Cardiología"; 
-       Date fechaInicio = Date.valueOf("2025-01-01"); 
-       Date fechaFin = Date.valueOf("2025-12-31");
-       System.out.print(" Usuario: ");
-        String usuario = scanner.nextLine();
-        System.out.print("Contraseña: ");
-        String contraseña = scanner.nextLine();
-         try {
-            List<String> agenda = medicoDAO.consultarAgenda(idMedico, fecha);
+        System.out.print("Ingrese el ID de la cita a verificar: ");
+        int idCita = scanner.nextInt();
 
-            if (agenda.isEmpty()) {
-                System.out.println(" No hay citas programadas para esta fecha.");
-            } else {
-                System.out.println("Agenda de citas:");
-                agenda.forEach(System.out::println);
-            }
-
+        try {
+            pacienteDAO.verificarAsistenciaCita(idCita);
         } catch (PersistenciaException e) {
-            System.out.println("Error al consultar la agenda: " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
       /*  try {
@@ -141,6 +120,6 @@ public class pruebasPersistencia {
     }   */
     }
     
-    
+
 
 
