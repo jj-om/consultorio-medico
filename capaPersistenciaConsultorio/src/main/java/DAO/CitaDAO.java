@@ -14,75 +14,63 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import Conexion.IConexionBD;
+import Exception.PersistenciaException;
+import java.sql.*;
+
 public class CitaDAO {
-    private int idCita;
-    private int idPaciente;
-    private int idMedico;
-    private LocalDateTime fechaHora;
-    private String estado;
+    IConexionBD conexion;
 
     public CitaDAO(IConexionBD conexion) {
-        
-    }
-    // Constructor completo
-    public CitaDAO(int idCita, int idPaciente, int idMedico, LocalDateTime fechaHora, String estado) {
-        this.idCita = idCita;
-        this.idPaciente = idPaciente;
-        this.idMedico = idMedico;
-        this.fechaHora = fechaHora;
-        this.estado = estado;
+        this.conexion = conexion;
     }
 
-    // Constructor sin ID (cuando insertamos una cita nueva)
-    public CitaDAO(int idPaciente, int idMedico, LocalDateTime fechaHora, String estado) {
-        this.idPaciente = idPaciente;
-        this.idMedico = idMedico;
-        this.fechaHora = fechaHora;
-        this.estado = estado;
+    public void verificarAsistenciaCita(int idCita) throws PersistenciaException {
+        String sentenciaSQL = "UPDATE Citas SET estado = 'No asistió paciente' " +
+                              "WHERE id_cita = ? AND estado = 'Agendada' " +
+                              "AND TIMESTAMPDIFF(MINUTE, fechaHoraCita, NOW()) > 15";
+
+        try (Connection con = conexion.crearConexion();
+             PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
+
+            stmt.setInt(1, idCita);
+            int filasAfectadas = stmt.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("✅ Cita actualizada a 'No asistió paciente'");
+            } else {
+                System.out.println("🕒 Aún en tiempo o ya asistió.");
+            }
+
+        } catch (SQLException ex) {
+            throw new PersistenciaException("Error al verificar asistencia: " + ex.getMessage(), ex);
+        }
     }
+    public void registrarDiagnosticoTratamiento(int idCita, String diagnostico, String tratamiento) throws PersistenciaException {
+    String sentenciaSQL = "UPDATE Consultas SET diagnostico = ?, tratamiento = ? WHERE id_cita = ?";
 
-    // Getters y Setters
+    try (Connection con = conexion.crearConexion();
+         PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
 
-    public int getIdCita() {
-        return idCita;
+        stmt.setString(1, diagnostico);
+        stmt.setString(2, tratamiento);
+        stmt.setInt(3, idCita);
+
+        int filasAfectadas = stmt.executeUpdate();
+
+        if (filasAfectadas > 0) {
+            System.out.println("Diagnóstico y tratamiento registrados correctamente.");
+        } else {
+            System.out.println("No se encontró la consulta para la cita especificada.");
+        }
+
+    } catch (SQLException ex) {
+        throw new PersistenciaException("Error al registrar diagnóstico y tratamiento: " + ex.getMessage(), ex);
     }
-
-    public void setIdCita(int idCita) {
-        this.idCita = idCita;
-    }
-
-    public int getIdPaciente() {
-        return idPaciente;
-    }
-
-    public void setIdPaciente(int idPaciente) {
-        this.idPaciente = idPaciente;
-    }
-
-    public int getIdMedico() {
-        return idMedico;
-    }
-
-    public void setIdMedico(int idMedico) {
-        this.idMedico = idMedico;
-    }
-
-    public LocalDateTime getFechaHora() {
-        return fechaHora;
-    }
-
-    public void setFechaHora(LocalDateTime fechaHora) {
-        this.fechaHora = fechaHora;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
 }
 
+    
+    
+}
 

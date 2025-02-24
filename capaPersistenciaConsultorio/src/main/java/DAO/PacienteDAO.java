@@ -1,6 +1,7 @@
 package DAO;
 
 import Conexion.IConexionBD;
+import Entidades.Cita;
 import Entidades.Paciente;
 import Exception.PersistenciaException;
 import static com.mysql.cj.conf.PropertyKey.logger;
@@ -111,7 +112,7 @@ public class PacienteDAO implements IPacienteDAO {
     }
 
     // Insertar la cita en la base de datos 
-        public void agendarCita(CitaDAO cita) throws PersistenciaException {
+        public void agendarCita(Cita cita) throws PersistenciaException {
     String sentenciaSQL = "CALL AgendarCita(?, ?, ?)"; //
 
     try (Connection con = conexion.crearConexion();
@@ -245,28 +246,6 @@ public class PacienteDAO implements IPacienteDAO {
 
         return historial;
     }
-    public void verificarAsistenciaCita(int idCita) throws PersistenciaException {
-        String sentenciaSQL = "UPDATE Citas SET estado = 'No asistió paciente' " +
-                              "WHERE id_cita = ? AND estado = 'Agendada' " +
-                              "AND TIMESTAMPDIFF(MINUTE, fechaHoraCita, NOW()) > 15";
-
-        try (Connection con = conexion.crearConexion();
-             PreparedStatement stmt = con.prepareStatement(sentenciaSQL)) {
-
-            stmt.setInt(1, idCita);
-            int filasAfectadas = stmt.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                System.out.println("Cita actualizada a 'No asistió paciente'");
-            } else {
-                System.out.println("Aún en tiempo o ya asistió.");
-            }
-
-        } catch (SQLException ex) {
-            throw new PersistenciaException("Error al verificar asistencia: " + ex.getMessage(), ex);
-        }
-    }   
-       
 }
    
    
