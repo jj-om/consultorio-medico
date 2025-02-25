@@ -203,7 +203,7 @@ public class AgendarCitaForm extends javax.swing.JFrame {
         });
     }
     
-        private void cargarMedicos() {
+    private void cargarMedicos() {
         // Obtener el modelo de la tabla y limpiar cualquier dato previo
         DefaultTableModel modelo = (DefaultTableModel) tblMedicos.getModel();
         modelo.setRowCount(0); // Limpiar todas las filas existentes en la tabla
