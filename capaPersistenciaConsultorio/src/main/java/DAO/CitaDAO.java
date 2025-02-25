@@ -23,7 +23,7 @@ import java.time.LocalDate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CitaDAO {
+public class CitaDAO implements ICitaDAO {
     IConexionBD conexion;
 
     public CitaDAO(IConexionBD conexion) {
@@ -151,7 +151,7 @@ public class CitaDAO {
 
     // Insertar la cita en la base de datos 
         public void agendarCita(Cita cita) throws PersistenciaException {
-    String sentenciaSQL = "CALL AgendarCita(?, ?, ?)"; //
+    String sentenciaSQL = "CALL agendarCita(?, ?, ?)"; //
 
     try (Connection con = conexion.crearConexion();
          CallableStatement cs = con.prepareCall(sentenciaSQL)) { 

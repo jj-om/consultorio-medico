@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import Exception.PersistenciaException;
 
-public class MedicoDAO {
+public class MedicoDAO implements IMedicoDAO {
     IConexionBD conexion;
 
     public MedicoDAO(IConexionBD conexion) {
