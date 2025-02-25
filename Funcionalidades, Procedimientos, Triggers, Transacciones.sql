@@ -120,7 +120,7 @@ CREATE PROCEDURE registrarPaciente(
     IN paciente_edad INT,
     IN paciente_correoElectronico VARCHAR(70),
     IN paciente_usuario VARCHAR(40),
-    IN paciente_contraseña VARCHAR(40),
+    IN paciente_contraseña VARCHAR(64),
     IN paciente_telefono VARCHAR(15),
     IN paciente_calle VARCHAR(40),
     IN paciente_numero INT,
@@ -409,4 +409,75 @@ BEGIN
     VALUES ('Cita de emergencia generada', paciente_id, nuevo_id);
     
 END &&
+DELIMITER ;
+
+-- (CUANDO SE INSERTA UNA CITA) TRIGGER QUE CAMBIA EL ESTADO DE LA CITA A 'paciente no asistio' 
+-- SI PASAN MAS DE 30 MINUTOS Y EL PACIENTE NO TOMA LA CITA (si su estado no cambia a atendida).
+DELIMITER &&
+
+CREATE TRIGGER actualizar_estado_cita_no_atendida_al_insertar
+AFTER INSERT ON Citas
+FOR EACH ROW
+BEGIN
+    -- Si han pasado más de 30 minutos desde la fecha de inicio de la cita y si el estado sigue siendo 'agendada', 
+    -- el estado se convierte a 'no asistio paciente'.
+    IF TIMESTAMPDIFF(MINUTE, NEW.fechaHoraCita, NOW()) > 30 AND NEW.estado = 'agendada' THEN
+        UPDATE Citas
+        SET estado = 'no asistio paciente'
+        WHERE id_cita = NEW.id_cita;
+    END IF;
+END &&
+
+DELIMITER ;
+
+-- (CUANDO SE ACTUALIZA UNA CITA) TRIGGER QUE CAMBIA EL ESTADO DE LA CITA A 'paciente no asistio' 
+-- SI PASAN MAS DE 30 MINUTOS Y EL PACIENTE NO TOMA LA CITA (si su estado no cambia a atendida).
+DELIMITER &&
+
+CREATE TRIGGER actualizar_estado_cita_no_atendida_al_actualizar
+AFTER UPDATE ON Citas
+FOR EACH ROW
+BEGIN
+    -- Si han pasado más de 30 minutos desde la fecha de inicio de la cita y si el estado sigue siendo 'agendada', 
+    -- el estado se convierte a 'no asistio paciente'.
+    IF TIMESTAMPDIFF(MINUTE, NEW.fechaHoraCita, NOW()) > 30 AND NEW.estado = 'agendada' THEN
+        UPDATE Citas
+        SET estado = 'no asistio paciente'
+        WHERE id_cita = NEW.id_cita;
+    END IF;
+END &&
+
+DELIMITER ;
+
+
+DELIMITER &&
+
+-- TRIGGER QUE CANCELA TODAS LAS CITAS AGENDADAS A UN MEDICO CUANDO ESTE SE DA DE BAJA, Y NOTIFICA A LOS PACIENTES
+-- QUE SE CANCELARON SUS CITAS AGENDADAS CON DICHO MEDICO.
+CREATE TRIGGER cancelar_citas_medico_baja
+AFTER UPDATE ON Medicos
+FOR EACH ROW
+BEGIN
+    -- El estado del médico pasa de 'Activo' a 'Inactivo'.
+    IF OLD.estado = 'Activo' AND NEW.estado = 'Inactivo' THEN
+        -- Se actualiza el estado de las citas programadas para ese médico.
+        UPDATE Citas
+        SET estado = 'cancelada'
+        WHERE id_medico = NEW.id_medico AND estado = 'agendada';
+
+        -- Se inserta un registro en la tabla de auditoría para registrar la baja del médico.
+        INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+        SELECT 'Baja de médico', NEW.id_medico, id_cita
+        FROM Citas
+        WHERE id_medico = NEW.id_medico AND estado = 'agendada';
+
+        -- Se inserta un registro en la tabla de auditoria para indicar que se cancelo su cita,
+        -- que sirve como notificación para los pacientes.
+        INSERT INTO Auditorias (tipoMovimiento, id_usuario, id_cita)
+        SELECT 'Notificación cancelación cita', id_paciente, id_cita
+        FROM Citas
+        WHERE id_medico = NEW.id_medico AND estado = 'agendada';
+    END IF;
+END &&
+
 DELIMITER ;
