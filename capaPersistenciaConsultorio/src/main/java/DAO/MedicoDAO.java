@@ -9,6 +9,7 @@ package DAO;
  * @author Gael
  */
 import Conexion.IConexionBD;
+import Entidades.Medico;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,8 +149,38 @@ public class MedicoDAO implements IMedicoDAO {
         throw new PersistenciaException("Error al cambiar estado del médico: " + ex.getMessage(), ex);
     }
 }
-
     
+    public List<Medico> consultarTodosMedicos() throws PersistenciaException {
+        String consultaSQL = "SELECT id_medico, cedulaProfesional, nombres, apellidoPaterno, apellidoMaterno, especialidad, estado FROM Medicos WHERE estado = 'Activo'";
+
+        List<Medico> medicos = new ArrayList<>();
+
+        // iniciamos el intento de ejecutar el comando/consulta en la bd
+        try (Connection con = this.conexion.crearConexion();
+                PreparedStatement ps = con.prepareStatement(consultaSQL);
+                ResultSet rs = ps.executeQuery() // Se ejecuta la consulta y se obtiene el resultado en un ResultSet
+                ) {
+            while (rs.next()) {
+            Medico medico = new Medico(
+                        rs.getInt("id_medico"),
+                        rs.getString("cedulaProfesional"),
+                        rs.getString("nombres"), 
+                        rs.getString("apellidPaterno"), 
+                        rs.getString("apellidoMaterno"), 
+                        rs.getString("especialidad"),
+                        rs.getString("estado")
+                );
+            }
+
+            // Se retorna la lista con todos los pacientes obtenidos
+            return medicos;
+
+        } catch (SQLException ex) {
+            // Se lanza una excepción personalizada si hay un error en la consulta
+            throw new PersistenciaException("Error al obtener la lista de medicos.", ex);
+        }
+
+    }
 }
 
 
