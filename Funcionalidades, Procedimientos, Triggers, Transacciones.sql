@@ -161,6 +161,20 @@ BEGIN
 END &&
 DELIMITER ;
 
+-- PROCEDIMIENTO PARA RECUPERAR UN PACIENTE POR CORREO ELECTRONICO
+DROP PROCEDURE IF EXISTS consultarPacienteCorreo;
+DELIMITER &&
+
+CREATE PROCEDURE consultarPacienteCorreo(
+    IN paciente_correoElectronico VARCHAR(70)
+)
+BEGIN
+    SELECT id_paciente, nombres, apellidoPaterno, apellidoMaterno, fechaNacimiento, correoElectronico, telefono, id_direccion
+    FROM Pacientes
+    WHERE correoElectronico = paciente_correoElectronico;
+END &&
+
+DELIMITER ;
 
 -- PROCEDIMIENTO PARA REGISTRAR UN MEDICO -- USO DE NOSOTROS, NO ES PARA EL PROGRAMA
 DELIMITER &&
