@@ -33,20 +33,21 @@ public class PacienteDAO implements IPacienteDAO {
 
     @Override
     public Paciente registrarPaciente(Paciente paciente) throws PersistenciaException {
-        String sentenciaSQL = "CALL registrarPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sentenciaSQL = "CALL registrarPaciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = conexion.crearConexion(); CallableStatement cs = con.prepareCall(sentenciaSQL)) {
 
             cs.setString(1, paciente.getNombres());
             cs.setString(2, paciente.getApellidoPaterno());
             cs.setString(3, paciente.getApellidoMaterno());
-            cs.setDate(4, new java.sql.Date(paciente.getFechaNacimiento().getTime()));
-            cs.setInt(5, paciente.getEdad());
-            cs.setString(6, paciente.getCorreoElectronico());
-            cs.setString(7, paciente.getTelefono());
-            cs.setString(8, paciente.getDireccion().getCalle());
-            cs.setInt(9, paciente.getDireccion().getNumero());
-            cs.setString(10, paciente.getDireccion().getColonia());
+            cs.setDate(4, java.sql.Date.valueOf(paciente.getFechaNacimiento()));
+            cs.setString(5, paciente.getCorreoElectronico());
+            cs.setString(6, paciente.getUsuario().getUsuario());
+            cs.setString(7, paciente.getUsuario().getContraseña());
+            cs.setString(8, paciente.getTelefono());
+            cs.setString(9, paciente.getDireccion().getCalle());
+            cs.setInt(10, paciente.getDireccion().getNumero());
+            cs.setString(11, paciente.getDireccion().getColonia());
 
             boolean tieneResultados = cs.execute();
             if (tieneResultados) {
@@ -66,6 +67,7 @@ public class PacienteDAO implements IPacienteDAO {
         return paciente;
     }
 
+    @Override
     public boolean recuperarPacienteCorreoElectronico(String correo) throws PersistenciaException {
         String sentenciaSQL = "CALL consultarPacienteCorreo(?)";
 
@@ -95,7 +97,7 @@ public class PacienteDAO implements IPacienteDAO {
             cs.setString(2, paciente.getNombres());
             cs.setString(3, paciente.getApellidoPaterno());
             cs.setString(4, paciente.getApellidoMaterno());
-            cs.setDate(5, new java.sql.Date(paciente.getFechaNacimiento().getTime()));
+            cs.setDate(5, java.sql.Date.valueOf(paciente.getFechaNacimiento()));
             cs.setInt(6, paciente.getEdad());
             cs.setString(7, paciente.getCorreoElectronico());
             cs.setString(8, paciente.getTelefono());
@@ -112,6 +114,7 @@ public class PacienteDAO implements IPacienteDAO {
     }
 
     //METODO PARA GENERAR CITA DE EMERGENCIA
+    @Override
     public int generarCitaEmergencia(int idPaciente) throws PersistenciaException {
         String sentenciaSQL = "CALL GenerarCitaEmergencia(?, ?)";  //Llamada al procedimiento almacenado
         int folio = -1;  // Para almacenar el folio generado
@@ -132,6 +135,7 @@ public class PacienteDAO implements IPacienteDAO {
     }
 
     // METODO PARA ACTUALIZAR LOS DATOS DEL CLIENTE
+    @Override
     public List<String> consultarHistorialConsultas(int idPaciente, String especialidad, Date fechaInicio, Date fechaFin) throws PersistenciaException {
         List<String> historial = new ArrayList<>();
         StringBuilder sentenciaSQL = new StringBuilder(

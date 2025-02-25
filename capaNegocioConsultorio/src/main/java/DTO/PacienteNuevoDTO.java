@@ -1,7 +1,8 @@
 package DTO;
 
+import Entidades.Direccion;
 import Entidades.Usuario;
-import java.sql.Date;
+import java.time.LocalDate;
 
 /**
  * @author Ethan Valdez
@@ -15,17 +16,17 @@ public class PacienteNuevoDTO {
     private String nombres;
     private String apellidoPaterno;
     private String apellidoMaterno;
-    private Date fechaNacimiento;
+    private LocalDate fechaNacimiento;
     private int edad;
     private String correoElectronico;
     private String telefono;
-    private DireccionNuevaDTO direccion;
+    private Direccion direccion;
     private Usuario usuario;
 
     public PacienteNuevoDTO() {
     }
 
-    public PacienteNuevoDTO(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, Date fechaNacimiento, int edad, String correoElectronico, String telefono, DireccionNuevaDTO direccion, Usuario usuario) {
+    public PacienteNuevoDTO(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, LocalDate fechaNacimiento, int edad, String correoElectronico, String telefono, Direccion direccion, Usuario usuario) {
         this.id_paciente = id_paciente;
         this.nombres = nombres;
         this.apellidoPaterno = apellidoPaterno;
@@ -70,11 +71,11 @@ public class PacienteNuevoDTO {
         this.apellidoMaterno = apellidoMaterno;
     }
 
-    public Date getFechaNacimiento() {
+    public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(Date fechaNacimiento) {
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 
@@ -102,11 +103,11 @@ public class PacienteNuevoDTO {
         this.telefono = telefono;
     }
 
-    public DireccionNuevaDTO getDireccion() {
+    public Direccion getDireccion() {
         return direccion;
     }
 
-    public void setDireccion(DireccionNuevaDTO direccion) {
+    public void setDireccion(Direccion direccion) {
         this.direccion = direccion;
     }
 
@@ -120,9 +121,8 @@ public class PacienteNuevoDTO {
 
     @Override
     public String toString() {
-        return "PacienteNuevoDTO{id_paciente=" + id_paciente + ", nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno +
-               ", apellidoMaterno=" + apellidoMaterno + ", fechaNacimiento=" + fechaNacimiento + ", edad=" + edad +
-               ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + ", direccion=" + direccion +
-               ", usuario=" + usuario + '}';
+        return "PacienteNuevoDTO{" + "id_paciente=" + id_paciente + ", nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", fechaNacimiento=" + fechaNacimiento + ", edad=" + edad + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + ", direccion=" + direccion + ", usuario=" + usuario + '}';
     }
+
+    
 }

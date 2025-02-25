@@ -1,6 +1,6 @@
 package Entidades;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 /**
  * @author Ethan Valdez
@@ -9,23 +9,22 @@ import java.sql.Date;
  * @author Jesus Osuna
  */
 
-
-
 public class Paciente {
     private int id_paciente;
     private String nombres;
     private String apellidoPaterno;
     private String apellidoMaterno;
-    private Date fechaNacimiento;
+    private LocalDate fechaNacimiento;
     private int edad;
     private String correoElectronico;
     private String telefono;
     private Direccion direccion;
-    
+    private Usuario usuario;
+
     public Paciente() {
     }
 
-    public Paciente(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, Date fechaNacimiento, int edad, String correoElectronico, String telefono, Direccion direccion) {
+    public Paciente(int id_paciente, String nombres, String apellidoPaterno, String apellidoMaterno, LocalDate fechaNacimiento, int edad, String correoElectronico, String telefono, Direccion direccion, Usuario usuario) {
         this.id_paciente = id_paciente;
         this.nombres = nombres;
         this.apellidoPaterno = apellidoPaterno;
@@ -35,10 +34,7 @@ public class Paciente {
         this.correoElectronico = correoElectronico;
         this.telefono = telefono;
         this.direccion = direccion;
-    }
-
-    public Paciente(String correoElectronico) {
-        this.correoElectronico = correoElectronico;
+        this.usuario = usuario;
     }
 
     public int getId_paciente() {
@@ -48,8 +44,6 @@ public class Paciente {
     public void setId_paciente(int id_paciente) {
         this.id_paciente = id_paciente;
     }
-
-
 
     public String getNombres() {
         return nombres;
@@ -75,11 +69,11 @@ public class Paciente {
         this.apellidoMaterno = apellidoMaterno;
     }
 
-    public Date getFechaNacimiento() {
+    public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(Date fechaNacimiento) {
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 
@@ -115,11 +109,16 @@ public class Paciente {
         this.direccion = direccion;
     }
 
-    @Override
-    public String toString() {
-        return "Paciente{" + "id_paciente=" + id_paciente + ", nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", fechaNacimiento=" + fechaNacimiento + ", edad=" + edad + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + ", direccion=" + direccion + '}';
+    public Usuario getUsuario() {
+        return usuario;
     }
 
-   
-}
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
 
+    @Override
+    public String toString() {
+        return "Paciente{" + "id_paciente=" + id_paciente + ", nombres=" + nombres + ", apellidoPaterno=" + apellidoPaterno + ", apellidoMaterno=" + apellidoMaterno + ", fechaNacimiento=" + fechaNacimiento + ", edad=" + edad + ", correoElectronico=" + correoElectronico + ", telefono=" + telefono + ", direccion=" + direccion + ", usuario=" + usuario + '}';
+    }
+}

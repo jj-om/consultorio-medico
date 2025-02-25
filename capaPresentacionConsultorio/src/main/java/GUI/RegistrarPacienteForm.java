@@ -1,17 +1,16 @@
 package GUI;
 
 import BO.PacienteBO;
-import DAO.PacienteDAO;
 import DTO.DireccionNuevaDTO;
 import DTO.PacienteNuevoDTO;
 import Entidades.Direccion;
 import Entidades.Usuario;
 import Exception.NegocioException;
 import Exception.PersistenciaException;
+import configuracion.DependencyInjector;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
@@ -22,50 +21,44 @@ import javax.swing.JOptionPane;
  */
 public class RegistrarPacienteForm extends javax.swing.JFrame {
 
+    private PacienteBO pacienteBO = DependencyInjector.crearPacienteBO();
+    private boolean registro = false;
+    
     public RegistrarPacienteForm() {
         this.setSize(640, 600);
         this.setLocationRelativeTo(null);
         initComponents();
     }
-
+    
+    
     public void registrarPaciente() {
         try {
-            int año = Integer.parseInt(textAño.getText());
-            int mes = Integer.parseInt(textMes.getText());
-            int dia = Integer.parseInt(textDia.getText());
-            LocalDate fechaNacimiento = LocalDate.of(año, mes, dia);
-            Date fechaSQL = Date.valueOf(fechaNacimiento);
             
             PacienteNuevoDTO pacienteR = new PacienteNuevoDTO();
             pacienteR.setNombres(textNombres.getText());
             pacienteR.setApellidoPaterno(textApPaterno.getText());
             pacienteR.setApellidoMaterno(textApMaterno.getText());
+            int año = Integer.parseInt(textAño.getText());
+            int mes = Integer.parseInt(textMes.getText());
+            int dia = Integer.parseInt(textDia.getText());
+            LocalDate fechaNacimiento = LocalDate.of(año, mes, dia);
+            pacienteR.setFechaNacimiento(fechaNacimiento);
             pacienteR.setCorreoElectronico(textCorreo.getText());
-            pacienteR.setFechaNacimiento(fechaSQL);
+            Usuario user = new Usuario(textUsuario.getText(), textContraseña.getText(), "Paciente");
+            pacienteR.setUsuario(user);
             pacienteR.setTelefono(textTelefono.getText());
-
-            pacienteR.setDireccion(new DireccionNuevaDTO(
-                    textCalle.getText(),
-                    Integer.parseInt(textNumero.getText()),
-                    textColonia.getText()
-            ));
-
-            pacienteR.setUsuario(new Usuario(
-                    textCorreo.getText(),
-                    textContraseña.getText(),
-                    "Paciente"
-            ));
-
-//            PacienteBO.registrarPaciente(pacienteR);
-
+            Direccion address = new Direccion(textCalle.getText(),Integer.parseInt(textNumero.getText()), textColonia.getText());
+            pacienteR.setDireccion(address);
+            
+            pacienteBO.registrarPaciente(pacienteR);
             JOptionPane.showMessageDialog(null, "Registro Exitoso.");
+            this.registro = true;
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Error: Verifica que los campos de fecha y número sean correctos.");
+        } catch (NegocioException | PersistenciaException ex) {
+            JOptionPane.showMessageDialog(null, "Error al registrar paciente: " + ex.getMessage());
         } 
-//catch (NegocioException | PersistenciaException ex) {
-//            JOptionPane.showMessageDialog(null, "Error al registrar paciente: " + ex.getMessage());
-//        }
     }
 
     @SuppressWarnings("unchecked")
@@ -414,9 +407,9 @@ public class RegistrarPacienteForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnRegresarActionPerformed
 
     private void btnRegistrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarActionPerformed
-        boolean registroExitoso = true;
+        this.registrarPaciente();
 
-        if (registroExitoso) {
+        if (registro) {
             JOptionPane.showMessageDialog(this, "Registro exitoso.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             SesionForm sesion = new SesionForm();
             sesion.setVisible(true);
@@ -439,9 +432,6 @@ public class RegistrarPacienteForm extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_textDiaActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">

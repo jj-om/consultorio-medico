@@ -14,7 +14,6 @@ import java.util.Optional;
  */
 public class PacienteMapper {
     
-    // Método para crear un Paciente a partir de un DTO, Direccion y Usuario
     public Paciente toEntity(PacienteNuevoDTO pacienteNuevo, Direccion direccion, Usuario usuario) {
         if (Optional.ofNullable(pacienteNuevo).isEmpty() 
                 || Optional.ofNullable(direccion).isEmpty() 
@@ -23,32 +22,33 @@ public class PacienteMapper {
         }
         return new Paciente(
                 0,
-            pacienteNuevo.getNombres(),
-            pacienteNuevo.getApellidoPaterno(),
-            pacienteNuevo.getApellidoMaterno(),
-            pacienteNuevo.getFechaNacimiento(), 
-            pacienteNuevo.getEdad(),          
-            pacienteNuevo.getCorreoElectronico(),
-            pacienteNuevo.getTelefono(),
-            direccion
+                pacienteNuevo.getNombres(),
+                pacienteNuevo.getApellidoPaterno(),
+                pacienteNuevo.getApellidoMaterno(),
+                pacienteNuevo.getFechaNacimiento(), 
+                pacienteNuevo.getEdad(),          
+                pacienteNuevo.getCorreoElectronico(),
+                pacienteNuevo.getTelefono(),
+                direccion,
+                usuario
         );
     }
 
-    // Método para crear un Paciente a partir de un ID, un DTO y una Dirección
-    public Paciente toEntity(int idPaciente, PacienteNuevoDTO pacienteNuevo, Direccion direccion) {
-        if (pacienteNuevo == null || direccion == null) {
+    public Paciente toEntity(int idPaciente, PacienteNuevoDTO pacienteNuevo, Direccion direccion, Usuario usuario) {
+        if (pacienteNuevo == null || direccion == null || usuario == null) {
             return null;
         }
         return new Paciente(
-            idPaciente,
-            pacienteNuevo.getNombres(),
-            pacienteNuevo.getApellidoPaterno(),
-            pacienteNuevo.getApellidoMaterno(),
-            pacienteNuevo.getFechaNacimiento(), 
-            pacienteNuevo.getEdad(),            
-            pacienteNuevo.getCorreoElectronico(),
-            pacienteNuevo.getTelefono(),
-            direccion
+                idPaciente,
+                pacienteNuevo.getNombres(),
+                pacienteNuevo.getApellidoPaterno(),
+                pacienteNuevo.getApellidoMaterno(),
+                pacienteNuevo.getFechaNacimiento(), 
+                pacienteNuevo.getEdad(),            
+                pacienteNuevo.getCorreoElectronico(),
+                pacienteNuevo.getTelefono(),
+                direccion,
+                usuario
         );
     }
 }

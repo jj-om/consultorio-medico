@@ -29,10 +29,13 @@ public class PacienteBO {
         this.pacienteDAO = new PacienteDAO(conexion);
     }
 
-    public void registrarPaciente(PacienteNuevoDTO pacienteDTO) throws NegocioException, PersistenciaException {
+    public Paciente registrarPaciente(PacienteNuevoDTO pacienteDTO) throws NegocioException, PersistenciaException {
+        Paciente paciente = null;
         validarPacienteDTO(pacienteDTO);
         try {
             pacienteDAO.registrarPaciente(convertirDTOaPaciente(pacienteDTO));
+            paciente = convertirDTOaPaciente(pacienteDTO);
+            return paciente;
         } catch (PersistenciaException ex) {
             throw new NegocioException("Error al registrar al paciente: " + ex.getMessage(), ex);
         }
@@ -53,11 +56,8 @@ public class PacienteBO {
         if (pacienteDTO == null || pacienteDTO.getNombres() == null || pacienteDTO.getCorreoElectronico() == null || pacienteDTO.getFechaNacimiento() == null) {
             throw new NegocioException("Los datos del paciente no pueden ser nulos.");
         }
-
-        LocalDate hoy = LocalDate.now();
-        Date fechaActual = (Date) Date.from(hoy.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-        if (pacienteDTO.getFechaNacimiento().after(fechaActual)) {
+        
+        if (pacienteDTO.getFechaNacimiento().isAfter(LocalDate.now())) {
             throw new NegocioException("Fecha de nacimiento inválida.");
         }
 
@@ -83,14 +83,15 @@ public class PacienteBO {
         paciente.setApellidoPaterno(pacienteDTO.getApellidoPaterno());
         paciente.setApellidoMaterno(pacienteDTO.getApellidoMaterno());
         paciente.setFechaNacimiento(pacienteDTO.getFechaNacimiento());
-        paciente.setEdad(pacienteDTO.getEdad());
         paciente.setCorreoElectronico(pacienteDTO.getCorreoElectronico());
+        paciente.setUsuario(pacienteDTO.getUsuario());
         paciente.setTelefono(pacienteDTO.getTelefono());
+        paciente.setDireccion(pacienteDTO.getDireccion());
         return paciente;
     }
 
     // METODO PRIVADO PARA ENCRIPTAR LA contraseña DEL Usuario 
-    private String hash(String data) throws NoSuchAlgorithmException {
+    public String hash(String data) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hashedBytes = digest.digest(data.getBytes());
         return Base64.getEncoder().encodeToString(hashedBytes);
