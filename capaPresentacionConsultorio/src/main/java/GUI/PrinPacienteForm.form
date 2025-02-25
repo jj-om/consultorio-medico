@@ -168,29 +168,29 @@
                       <Component id="btnActualizarPerfil" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="nombrePerfil" alignment="3" min="-2" pref="15" max="-2" attributes="0"/>
+                      <Component id="nombrePerfil" min="-2" pref="15" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jLabel4" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="nacimientoPerfil" alignment="0" min="-2" pref="15" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jLabel5" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="edadPerfil" alignment="3" min="-2" pref="15" max="-2" attributes="0"/>
+                      <Component id="edadPerfil" min="-2" pref="15" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jLabel6" alignment="1" min="-2" max="-2" attributes="0"/>
-                      <Component id="telefonoPerfil" alignment="3" min="-2" pref="15" max="-2" attributes="0"/>
+                      <Component id="telefonoPerfil" min="-2" pref="15" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jLabel7" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="correoPerfil" alignment="3" min="-2" pref="15" max="-2" attributes="0"/>
+                      <Component id="correoPerfil" min="-2" pref="15" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace pref="48" max="32767" attributes="0"/>
               </Group>
@@ -209,7 +209,6 @@
         <Component class="javax.swing.JButton" name="btnActualizarPerfil">
           <Properties>
             <Property name="text" type="java.lang.String" value="Editar"/>
-            <Property name="actionCommand" type="java.lang.String" value="Editar"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnActualizarPerfilActionPerformed"/>
