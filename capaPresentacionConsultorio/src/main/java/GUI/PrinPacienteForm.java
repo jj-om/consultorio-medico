@@ -205,7 +205,9 @@ public class PrinPacienteForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnGestionarCitasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGestionarCitasActionPerformed
-        // TODO add your handling code here:
+        GestionarCitasForm gestionarCitas = new GestionarCitasForm();
+        gestionarCitas.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnGestionarCitasActionPerformed
 
     private void btnCitaEmergenciaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCitaEmergenciaActionPerformed
