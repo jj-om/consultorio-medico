@@ -120,7 +120,7 @@ CREATE PROCEDURE registrarPaciente(
     IN paciente_edad INT,
     IN paciente_correoElectronico VARCHAR(70),
     IN paciente_usuario VARCHAR(40),
-    IN paciente_contraseña VARCHAR(40),
+    IN paciente_contraseña VARCHAR(64),
     IN paciente_telefono VARCHAR(15),
     IN paciente_calle VARCHAR(40),
     IN paciente_numero INT,
